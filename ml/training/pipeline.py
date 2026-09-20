@@ -77,9 +77,11 @@ class TrainedModel:
         return self.estimator.predict_proba(prepare_frame(frame, self.features))[:, 1]
 
 
-def prepare_frame(frame: pd.DataFrame, features: list[str]) -> pd.DataFrame:
+def prepare_frame(
+    frame: pd.DataFrame, features: list[str], vocab: dict[str, list[str]] | None = None
+) -> pd.DataFrame:
     """Build the numeric design matrix the booster and TreeSHAP both consume."""
-    return build_design_matrix(frame, features)
+    return build_design_matrix(frame, features, vocab)
 
 
 def ks_statistic(y_true: np.ndarray, y_score: np.ndarray) -> float:
@@ -96,10 +98,33 @@ def ks_statistic(y_true: np.ndarray, y_score: np.ndarray) -> float:
     return float(np.max(np.abs(positives - negatives)))
 
 
+def expected_calibration_error(y_true: np.ndarray, y_score: np.ndarray, n_bins: int = 10) -> float:
+    """Average gap between predicted and observed default rate, by score bin.
+
+    Credit pricing and provisioning are computed from the probability, so it
+    has to mean what it says: among applicants scored at 8%, roughly 8 in 100
+    should default. Bins are equal-population rather than equal-width, so a
+    sparsely populated tail cannot dominate the statistic.
+    """
+    y_true = np.asarray(y_true).astype(float)
+    y_score = np.asarray(y_score, dtype=float)
+    edges = np.quantile(y_score, np.linspace(0, 1, n_bins + 1))
+    edges[-1] += 1e-9
+    error = 0.0
+    for i in range(n_bins):
+        mask = (y_score >= edges[i]) & (y_score < edges[i + 1])
+        if not mask.any():
+            continue
+        error += (mask.sum() / len(y_score)) * abs(y_score[mask].mean() - y_true[mask].mean())
+    return float(error)
+
+
 def train_model(
     frame: pd.DataFrame,
     config: TrainingConfig | None = None,
     features: list[str] | None = None,
+    target: str | None = None,
+    vocab: dict[str, list[str]] | None = None,
 ) -> tuple[TrainedModel, dict]:
     """Fit the decisioning model and return it with a held-out evaluation.
 
@@ -110,19 +135,34 @@ def train_model(
             traditional bureau-only underwriting against underwriting that also
             sees consented alternative data. Defaults to every permitted
             feature. Protected attributes are excluded regardless.
+        target: the outcome column. Defaults to this project's own target.
+        vocab: categorical vocabulary for the design matrix. Supplying both
+            ``target`` and ``vocab`` is what lets this identical pipeline run
+            over an external benchmark dataset - see
+            ``scripts/validate_on_real_data.py``. When they are supplied the
+            caller owns feature selection, so the project's own
+            protected-attribute guard does not apply and the caller must
+            exclude them itself.
     """
     cfg = config or TrainingConfig()
-    allowed = feature_columns(frame)
-    if features is None:
-        features = allowed
+    external = target is not None
+    target = target or TARGET_COLUMN
+
+    if external:
+        if features is None:
+            raise ValueError("an external dataset must state its features explicitly")
     else:
-        illegal = set(features) - set(allowed)
-        if illegal:
-            raise ValueError(f"Features not permitted for training: {sorted(illegal)}")
-        features = [f for f in features if f in allowed]
-    X = prepare_frame(frame, features)
-    design = design_columns(features)
-    y = frame[TARGET_COLUMN].to_numpy()
+        allowed = feature_columns(frame)
+        if features is None:
+            features = allowed
+        else:
+            illegal = set(features) - set(allowed)
+            if illegal:
+                raise ValueError(f"Features not permitted for training: {sorted(illegal)}")
+            features = [f for f in features if f in allowed]
+    X = prepare_frame(frame, features, vocab)
+    design = design_columns(features, vocab)
+    y = frame[target].to_numpy().astype(int)
 
     # Three-way split: fit / calibrate / test. Calibration must not see the
     # test set, and the booster must not see the calibration set.

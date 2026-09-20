@@ -1,0 +1,150 @@
+[
+  {
+    "name": "German Credit (Statlog)",
+    "source": "OpenML credit-g, version 1",
+    "n_rows": 1000,
+    "n_features": 19,
+    "base_rate": 0.3,
+    "roc_auc": 0.7464380952380952,
+    "gini": 0.49287619047619047,
+    "ks": 0.3752380952380952,
+    "brier": 0.18254652040884128,
+    "expected_calibration_error": 0.07716862429705756,
+    "shap_max_additivity_error": 2.6645352591003757e-15,
+    "shap_is_exact": true,
+    "approval_rate": 0.84,
+    "bad_rate_among_approved": 0.23333333333333334,
+    "fairness": {
+      "sex": {
+        "disparate_impact_ratio": 0.986034738587763,
+        "passes_80_percent_rule": true,
+        "qualified_approval_gap": 0.0,
+        "groups": [
+          {
+            "group": "female",
+            "n": 79,
+            "approval_rate": 0.8481,
+            "qualified_approval_rate": 0.92,
+            "default_rate_among_approved": 0.3134
+          },
+          {
+            "group": "male",
+            "n": 171,
+            "approval_rate": 0.8363,
+            "qualified_approval_rate": 0.92,
+            "default_rate_among_approved": 0.1958
+          }
+        ]
+      },
+      "age_band": {
+        "disparate_impact_ratio": 0.7831541218637993,
+        "passes_80_percent_rule": false,
+        "qualified_approval_gap": 0.11212121212121207,
+        "groups": [
+          {
+            "group": "19-30",
+            "n": 118,
+            "approval_rate": 0.839,
+            "qualified_approval_rate": 0.9211,
+            "default_rate_among_approved": 0.2929
+          },
+          {
+            "group": "31-40",
+            "n": 69,
+            "approval_rate": 0.8986,
+            "qualified_approval_rate": 0.9455,
+            "default_rate_among_approved": 0.1613
+          },
+          {
+            "group": "41-50",
+            "n": 36,
+            "approval_rate": 0.8333,
+            "qualified_approval_rate": 0.9231,
+            "default_rate_among_approved": 0.2
+          },
+          {
+            "group": "51+",
+            "n": 27,
+            "approval_rate": 0.7037,
+            "qualified_approval_rate": 0.8333,
+            "default_rate_among_approved": 0.2105
+          }
+        ]
+      }
+    }
+  },
+  {
+    "name": "Taiwan Default of Credit Card Clients",
+    "source": "OpenML default-of-credit-card-clients, version 1",
+    "n_rows": 30000,
+    "n_features": 22,
+    "base_rate": 0.2212,
+    "roc_auc": 0.7829139878056419,
+    "gini": 0.5658279756112838,
+    "ks": 0.43911236681028576,
+    "brier": 0.1330778630020687,
+    "expected_calibration_error": 0.02220248639146894,
+    "shap_max_additivity_error": 3.9968028886505635e-15,
+    "shap_is_exact": true,
+    "approval_rate": 0.7332,
+    "bad_rate_among_approved": 0.11965811965811966,
+    "fairness": {
+      "sex": {
+        "disparate_impact_ratio": 0.918662079142885,
+        "passes_80_percent_rule": true,
+        "qualified_approval_gap": 0.03539013321622009,
+        "groups": [
+          {
+            "group": "female",
+            "n": 4487,
+            "approval_rate": 0.758,
+            "qualified_approval_rate": 0.8426,
+            "default_rate_among_approved": 0.117
+          },
+          {
+            "group": "male",
+            "n": 3013,
+            "approval_rate": 0.6963,
+            "qualified_approval_rate": 0.8072,
+            "default_rate_among_approved": 0.1239
+          }
+        ]
+      },
+      "age_band": {
+        "disparate_impact_ratio": 0.8650016264551582,
+        "passes_80_percent_rule": true,
+        "qualified_approval_gap": 0.08438454158864284,
+        "groups": [
+          {
+            "group": "21-30",
+            "n": 2732,
+            "approval_rate": 0.7134,
+            "qualified_approval_rate": 0.8132,
+            "default_rate_among_approved": 0.1175
+          },
+          {
+            "group": "31-40",
+            "n": 2695,
+            "approval_rate": 0.777,
+            "qualified_approval_rate": 0.8611,
+            "default_rate_among_approved": 0.1151
+          },
+          {
+            "group": "41-50",
+            "n": 1521,
+            "approval_rate": 0.7133,
+            "qualified_approval_rate": 0.8155,
+            "default_rate_among_approved": 0.1198
+          },
+          {
+            "group": "51+",
+            "n": 552,
+            "approval_rate": 0.6721,
+            "qualified_approval_rate": 0.7767,
+            "default_rate_among_approved": 0.1563
+          }
+        ]
+      }
+    }
+  }
+]

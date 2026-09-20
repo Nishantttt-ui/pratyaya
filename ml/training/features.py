@@ -41,34 +41,45 @@ CATEGORICAL_VOCAB: dict[str, list[str]] = {
 }
 
 
-def design_columns(features: list[str]) -> list[str]:
-    """Column names of the design matrix produced from ``features``."""
+def design_columns(
+    features: list[str], vocab: dict[str, list[str]] | None = None
+) -> list[str]:
+    """Column names of the design matrix produced from ``features``.
+
+    ``vocab`` allows a different categorical vocabulary, which is what lets the
+    identical pipeline run over an external benchmark dataset whose categories
+    are not this project's.
+    """
+    vocab = CATEGORICAL_VOCAB if vocab is None else vocab
     columns: list[str] = []
     for feature in features:
-        if feature in CATEGORICAL_VOCAB:
-            columns.extend(f"{feature}={level}" for level in CATEGORICAL_VOCAB[feature])
+        if feature in vocab:
+            columns.extend(f"{feature}={level}" for level in vocab[feature])
         else:
             columns.append(feature)
     return columns
 
 
-def build_design_matrix(frame: pd.DataFrame, features: list[str]) -> pd.DataFrame:
+def build_design_matrix(
+    frame: pd.DataFrame, features: list[str], vocab: dict[str, list[str]] | None = None
+) -> pd.DataFrame:
     """Expand raw features into the numeric design matrix the model consumes.
 
     Categorical columns become one-hot indicators over a pinned vocabulary.
     Numeric columns pass through untouched, NaN included.
     """
+    vocab = CATEGORICAL_VOCAB if vocab is None else vocab
     blocks: dict[str, np.ndarray] = {}
     for feature in features:
-        if feature in CATEGORICAL_VOCAB:
+        if feature in vocab:
             values = frame[feature].astype(str).to_numpy()
-            for level in CATEGORICAL_VOCAB[feature]:
+            for level in vocab[feature]:
                 blocks[f"{feature}={level}"] = (values == level).astype(float)
         else:
             blocks[feature] = pd.to_numeric(frame[feature], errors="coerce").to_numpy(dtype=float)
 
     matrix = pd.DataFrame(blocks, index=frame.index)
-    return matrix[design_columns(features)]
+    return matrix[design_columns(features, vocab)]
 
 
 def source_feature_of(design_column: str) -> str:
