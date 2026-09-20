@@ -91,6 +91,71 @@ only on latent capacity and willingness — there is no gender or region term.
 So every point of approval gap is unjustified by risk. That is asserted as a
 test, not assumed.
 
+## Is this just an artefact of synthetic data?
+
+The fair objection to a generated population is that the result could be an
+artefact of the generator. So the *identical* code path — design matrix,
+booster, isotonic calibration, exact TreeSHAP, fairness audit — was run over two
+real public credit datasets with genuinely observed defaults.
+
+| | Rows | AUC | KS | Calibration error | TreeSHAP additivity |
+|---|---|---|---|---|---|
+| German Credit (Statlog) | 1,000 | 0.7464 | 0.3752 | 0.0772 | 2.7e-15 |
+| Taiwan Default of Credit Card Clients | 30,000 | 0.7829 | 0.4391 | 0.0222 | 4.0e-15 |
+| **This project, synthetic** | 30,000 | **0.7797** | **0.4127** | **0.0073** | **5.2e-15** |
+
+The synthetic population's difficulty sits **between** the two real datasets,
+which is the answer to "you tuned it to a flattering level". TreeSHAP stays
+exact on real data, and the audit found a genuine violation rather than
+rubber-stamping: age band on German Credit fails the 80% rule at 0.783.
+
+**What this does not establish.** Neither dataset carries alternative data, so
+the traditional-versus-inclusive comparison cannot be reproduced on them. That
+finding rests on the synthetic population. `python scripts/validate_on_real_data.py`
+
+## Did the standard algorithmic fixes work?
+
+Claiming the disparity lives in the evidence is only worth something if the
+algorithmic remedies were actually tried. All measured at the same approval rate:
+
+| Strategy | AUC | Bad rate | Disparate impact | Reads gender to decide? |
+|---|---|---|---|---|
+| Baseline, bureau only | 0.731 | 0.0698 | 0.879 | no |
+| **Alternative data (this project)** | **0.765** | **0.0616** | 0.957 | **no** |
+| CorrelationRemover | 0.727 | 0.0708 | 0.990 | **yes** |
+| ThresholdOptimizer | 0.677 | 0.1200 | 1.000 | **yes** |
+| ExponentiatedGradient | *degenerate* | 0.1191 | 0.996 | no |
+
+Every algorithmic remedy bought fairness with accuracy or with risk. Widening
+the evidence was the only one that improved all three together, and the only
+one needing the protected attribute at neither training nor decision time.
+
+Two failures worth recording rather than smoothing over. `CorrelationRemover`
+cannot accept `NaN`, so the missing bureau records had to be imputed before it
+would run — in thin-file lending that absence *is* the signal.
+`ExponentiatedGradient` collapsed to approving ~99% of applicants across five
+constraint tightnesses and all three constraint types tried: at a 12% base rate,
+approving everyone satisfies parity exactly while being only 12% wrong.
+`python scripts/compare_mitigations.py`
+
+## What it costs to explain a decision
+
+Per applicant, on CPU, p50:
+
+| Stage | p50 | p95 |
+|---|---|---|
+| Score only | 3.18 ms | 4.34 ms |
+| **Score + exact SHAP reason codes** | **3.52 ms** | 4.55 ms |
+| Retrieve governing provisions | 2.93 ms | 3.17 ms |
+| Render the full compliant notice | 3.68 ms | 4.82 ms |
+| Search for actionable recourse | 75.92 ms | 92.14 ms |
+
+**Exact reason codes cost 0.34 ms.** A complete, explained, cited decision lands
+in about 10 ms — about 86 ms when it also computes recourse. Explainability is
+not something this lender trades latency for. The language model is excluded: it
+is off the decision path and its latency belongs to a third party.
+`python scripts/benchmark_latency.py`
+
 ## Architecture
 
 ```mermaid
@@ -162,12 +227,32 @@ narrative is generated and guardrailed. Without one, every endpoint still return
 a complete decision with reasons, recourse and citations — the `provenance`
 block on each response says which path produced the wording.
 
-### Running the tests
+### Everything you can run
 
 ```bash
-pytest                                            # 103 tests
-pytest --cov=backend/app --cov=ml --cov-report=term   # 89% coverage
+pytest                                     # 103 tests
+pytest --cov=backend/app --cov=ml          # 89% coverage
+ruff check backend ml eval scripts         # lint
+
+python scripts/train.py                    # train both models, write artifacts
+python eval/run_eval.py                    # retrieval, guardrails, faithfulness, calibration
+python scripts/validate_on_real_data.py    # the same pipeline on two real datasets
+python scripts/compare_mitigations.py      # against Fairlearn's algorithmic remedies
+python scripts/benchmark_latency.py        # per-stage decision latency
+python scripts/make_figures.py             # the deck's charts
+node scripts/deck/build_deck.js            # rebuild the deck itself
 ```
+
+Every number quoted in this README and in the deck is produced by one of these
+and written to `eval/reports/`, so neither can drift from the model.
+
+### Further reading
+
+- **[MODEL_CARD.md](MODEL_CARD.md)** — intended use, out-of-scope uses, the
+  groups measured and the ones that were not, and six caveats headed by "do not
+  deploy this model".
+- **[data/policy/README.md](data/policy/README.md)** — provenance and limits of
+  the regulatory corpus.
 
 ## Project layout
 
