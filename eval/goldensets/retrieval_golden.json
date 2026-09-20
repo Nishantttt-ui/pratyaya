@@ -1,0 +1,33 @@
+{
+  "description": "Retrieval golden set. Each query is a question a borrower, underwriter or auditor would genuinely ask. 'relevant' lists every provision that would be an acceptable citation; 'ideal' is the single provision that most directly governs the question.",
+  "cases": [
+    {"query": "why was my loan application rejected", "ideal": "FPC-01", "relevant": ["FPC-01", "DL-08"]},
+    {"query": "the lender did not tell me why I was turned down", "ideal": "FPC-01", "relevant": ["FPC-01", "DL-07"]},
+    {"query": "I have no credit history, does that count against me", "ideal": "CIC-04", "relevant": ["CIC-04", "AA-07"]},
+    {"query": "can I be assessed without a CIBIL score", "ideal": "CIC-04", "relevant": ["CIC-04", "AA-07"]},
+    {"query": "how can someone with no past loans prove they will repay", "ideal": "AA-07", "relevant": ["AA-07", "CIC-04"]},
+    {"query": "can I withdraw permission to use my personal data", "ideal": "DPDP-05", "relevant": ["DPDP-05", "DL-04", "AA-04"]},
+    {"query": "I want my data deleted", "ideal": "DPDP-08", "relevant": ["DPDP-08", "DPDP-09", "DL-04"]},
+    {"query": "does the app need access to my contacts and photos", "ideal": "DL-03", "relevant": ["DL-03"]},
+    {"query": "what charges must be disclosed before I sign", "ideal": "DL-01", "relevant": ["DL-01", "FPC-04", "FPC-05"]},
+    {"query": "can they increase my credit limit automatically", "ideal": "DL-05", "relevant": ["DL-05"]},
+    {"query": "who do I complain to about a digital loan app", "ideal": "DL-07", "relevant": ["DL-07", "FPC-06"]},
+    {"query": "can I exit the loan shortly after taking it", "ideal": "DL-09", "relevant": ["DL-09"]},
+    {"query": "is the lender allowed to collect any data it wants", "ideal": "DL-02", "relevant": ["DL-02", "DPDP-04", "DPDP-03"]},
+    {"query": "only collect data that is actually needed", "ideal": "DPDP-04", "relevant": ["DPDP-04", "DL-02"]},
+    {"query": "can my bank data be used for marketing a different product", "ideal": "DPDP-03", "relevant": ["DPDP-03", "AA-05", "DL-02"]},
+    {"query": "what is an account aggregator consent artefact", "ideal": "AA-03", "relevant": ["AA-03", "AA-02"]},
+    {"query": "does the account aggregator store my financial data", "ideal": "AA-01", "relevant": ["AA-01"]},
+    {"query": "can I see which consents I have given", "ideal": "AA-06", "relevant": ["AA-06", "DPDP-07"]},
+    {"query": "am I entitled to a free copy of my credit report", "ideal": "CIC-01", "relevant": ["CIC-01"]},
+    {"query": "there is a mistake in my credit report", "ideal": "CIC-02", "relevant": ["CIC-02", "DPDP-08"]},
+    {"query": "must a decision made by an algorithm be explainable", "ideal": "DL-08", "relevant": ["DL-08", "FPC-01"]},
+    {"query": "can a lender discriminate on the basis of sex", "ideal": "FPC-02", "relevant": ["FPC-02"]},
+    {"query": "must loan terms be given in a language I understand", "ideal": "FPC-04", "relevant": ["FPC-04", "DL-01"]},
+    {"query": "how is the interest rate on my loan decided", "ideal": "FPC-05", "relevant": ["FPC-05", "DL-01"]},
+    {"query": "recovery agents are harassing me", "ideal": "FPC-06", "relevant": ["FPC-06", "DL-06"]},
+    {"query": "must the lender keep my data accurate if it affects a decision", "ideal": "DPDP-06", "relevant": ["DPDP-06", "CIC-02"]},
+    {"query": "what happens if there is a data breach", "ideal": "DPDP-10", "relevant": ["DPDP-10"]},
+    {"query": "will I be warned before being reported as a defaulter", "ideal": "CIC-05", "relevant": ["CIC-05"]}
+  ]
+}

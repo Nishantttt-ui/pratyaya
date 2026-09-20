@@ -1,0 +1,130 @@
+{
+  "retrieval": {
+    "n_cases": 28,
+    "ideal_at_1": 0.75,
+    "relevant_at_1": 0.9285714285714286,
+    "relevant_at_3": 1.0,
+    "relevant_at_5": 1.0,
+    "mrr": 0.9583333333333333,
+    "misses_at_1": [
+      {
+        "query": "the lender did not tell me why I was turned down",
+        "expected": "FPC-01",
+        "got": [
+          "DL-04",
+          "FPC-01",
+          "DL-09"
+        ]
+      },
+      {
+        "query": "can I see which consents I have given",
+        "expected": "AA-06",
+        "got": [
+          "DPDP-02",
+          "AA-02",
+          "AA-06"
+        ]
+      }
+    ]
+  },
+  "guardrails": {
+    "inbound": {
+      "true_positives": 8,
+      "false_positives": 0,
+      "false_negatives": 0,
+      "true_negatives": 5,
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "accuracy": 1.0
+    },
+    "outbound": {
+      "true_positives": 7,
+      "false_positives": 0,
+      "false_negatives": 0,
+      "true_negatives": 3,
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "accuracy": 1.0
+    },
+    "combined": {
+      "true_positives": 15,
+      "false_positives": 0,
+      "false_negatives": 0,
+      "true_negatives": 8,
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "accuracy": 1.0
+    },
+    "failures": []
+  },
+  "faithfulness": {
+    "n_applicants": 500,
+    "max_additivity_error": 5.218048215738236e-15,
+    "mean_additivity_error": 1.037031571726743e-15,
+    "is_exact": true
+  },
+  "calibration": {
+    "expected_calibration_error": 0.0072951124122124685,
+    "brier_score": 0.09171981359632331,
+    "base_rate": 0.12,
+    "bins": [
+      {
+        "bin": 1,
+        "n": 260,
+        "predicted": 0.0,
+        "observed": 0.0
+      },
+      {
+        "bin": 2,
+        "n": 1631,
+        "predicted": 0.0136,
+        "observed": 0.011
+      },
+      {
+        "bin": 3,
+        "n": 1013,
+        "predicted": 0.0369,
+        "observed": 0.0316
+      },
+      {
+        "bin": 4,
+        "n": 557,
+        "predicted": 0.0498,
+        "observed": 0.0413
+      },
+      {
+        "bin": 5,
+        "n": 1143,
+        "predicted": 0.0635,
+        "observed": 0.0525
+      },
+      {
+        "bin": 7,
+        "n": 1967,
+        "predicted": 0.1006,
+        "observed": 0.0915
+      },
+      {
+        "bin": 8,
+        "n": 1396,
+        "predicted": 0.1665,
+        "observed": 0.1683
+      },
+      {
+        "bin": 9,
+        "n": 903,
+        "predicted": 0.2434,
+        "observed": 0.2447
+      },
+      {
+        "bin": 10,
+        "n": 1130,
+        "predicted": 0.3598,
+        "observed": 0.3814
+      }
+    ]
+  }
+}
