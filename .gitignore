@@ -36,3 +36,7 @@ frontend/.vite/
 .DS_Store
 .idea/
 .vscode/
+
+# --- frontend build output ---
+frontend/dist/
+frontend/node_modules/

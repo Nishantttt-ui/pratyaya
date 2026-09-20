@@ -1,0 +1,32 @@
+import type { RecourseOption } from "../types";
+import { EFFORT_LABEL, formatValue } from "../format";
+
+export function RecourseList({ options }: { options: RecourseOption[] }) {
+  if (options.length === 0) return null;
+  return (
+    <div className="card">
+      <h3>What would change this decision</h3>
+      <p className="muted" style={{ marginTop: -4, fontSize: 13.5 }}>
+        Each of these on its own would have been enough. They are counterfactuals
+        re-scored by the same model that made the decision — not a guarantee of approval.
+      </p>
+      {options.map((option) => (
+        <div key={option.feature} className="recourse">
+          <div className="move">
+            {option.label}:{" "}
+            {formatValue(option.feature, option.current_value)}
+            <span className="arrow">→</span>
+            {formatValue(option.feature, option.target_value)}
+          </div>
+          <div className="row" style={{ marginTop: 6 }}>
+            <span className="chip">{EFFORT_LABEL[option.effort] ?? option.effort}</span>
+            {option.projected_pd !== null && (
+              <span className="chip">projected PD {(option.projected_pd * 100).toFixed(1)}%</span>
+            )}
+          </div>
+          {option.hint && <div className="hint">{option.hint}</div>}
+        </div>
+      ))}
+    </div>
+  );
+}
