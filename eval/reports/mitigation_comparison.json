@@ -1,0 +1,82 @@
+{
+  "approval_rate": 0.7,
+  "n": 18000,
+  "attribute": "gender",
+  "runs": [
+    {
+      "strategy": "Baseline",
+      "family": "none",
+      "needs_attribute_at_decision": false,
+      "note": "Traditional bureau feature set, no mitigation applied.",
+      "roc_auc": 0.7309291994014216,
+      "ks": 0.34158249158249154,
+      "approval_rate": 0.7,
+      "bad_rate_among_approved": 0.06984126984126984,
+      "disparate_impact_ratio": 0.8794851810042764,
+      "qualified_approval_gap": 0.08575090161453236,
+      "female_qualified_approval": 0.6910902696365768,
+      "male_qualified_approval": 0.7768411712511092,
+      "seconds": 0.4
+    },
+    {
+      "strategy": "Alternative data",
+      "family": "wider evidence",
+      "needs_attribute_at_decision": false,
+      "note": "No mitigation algorithm. The protected attribute is read at neither training nor decision time.",
+      "roc_auc": 0.7651608679386457,
+      "ks": 0.39646464646464646,
+      "approval_rate": 0.7,
+      "bad_rate_among_approved": 0.061587301587301586,
+      "disparate_impact_ratio": 0.956644250892049,
+      "qualified_approval_gap": 0.030347507778278215,
+      "female_qualified_approval": 0.7291910902696366,
+      "male_qualified_approval": 0.7595385980479148,
+      "seconds": 0.5
+    },
+    {
+      "strategy": "CorrelationRemover",
+      "family": "pre-processing",
+      "needs_attribute_at_decision": true,
+      "note": "Cannot accept NaN, so the missing bureau records had to be imputed before it would run. transform() also requires the sensitive column, so a deployed scorer must read the protected attribute for every application.",
+      "roc_auc": 0.7272867564534231,
+      "ks": 0.34570707070707074,
+      "approval_rate": 0.7,
+      "bad_rate_among_approved": 0.0707936507936508,
+      "disparate_impact_ratio": 0.9895530751075144,
+      "qualified_approval_gap": 0.008213092056742255,
+      "female_qualified_approval": 0.7344665885111371,
+      "male_qualified_approval": 0.7426796805678794,
+      "seconds": 0.5
+    },
+    {
+      "strategy": "ExponentiatedGradient",
+      "family": "in-processing",
+      "needs_attribute_at_decision": false,
+      "note": "The attribute is used while fitting only; predict() takes features alone.",
+      "roc_auc": 0.5041245791245791,
+      "ks": 0.040824915824915875,
+      "approval_rate": 0.998,
+      "bad_rate_among_approved": 0.11912714317523937,
+      "disparate_impact_ratio": 0.9962494541416487,
+      "qualified_approval_gap": 0.001314843690674694,
+      "female_qualified_approval": 0.9982415005861665,
+      "male_qualified_approval": 0.9995563442768411,
+      "seconds": 24.3
+    },
+    {
+      "strategy": "ThresholdOptimizer",
+      "family": "post-processing",
+      "needs_attribute_at_decision": true,
+      "note": "The per-group threshold is the mechanism: an applicant's group changes the bar they must clear, which is disparate treatment.",
+      "roc_auc": 0.6771656378600823,
+      "ks": 0.3446969696969697,
+      "approval_rate": 1.0,
+      "bad_rate_among_approved": 0.12,
+      "disparate_impact_ratio": 1.0,
+      "qualified_approval_gap": 0.0,
+      "female_qualified_approval": 1.0,
+      "male_qualified_approval": 1.0,
+      "seconds": 0.5
+    }
+  ]
+}
