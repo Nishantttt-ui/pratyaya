@@ -117,7 +117,8 @@ def main() -> None:
         print(f"  source                  {r['source']}")
         print(f"  base default rate       {r['base_rate']:.4f}")
         print(f"  ROC AUC                 {r['roc_auc']:.4f}     KS {r['ks']:.4f}")
-        print(f"  Brier                   {r['brier']:.4f}     ECE {r['expected_calibration_error']:.4f}")
+        print(f"  Brier                   {r['brier']:.4f}     "
+              f"ECE {r['expected_calibration_error']:.4f}")
         print(f"  TreeSHAP additivity     {r['shap_max_additivity_error']:.2e}  "
               f"({'exact' if r['shap_is_exact'] else 'NOT EXACT'})")
         print(f"  bad rate among approved {r['bad_rate_among_approved']:.4f} "

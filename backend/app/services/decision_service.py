@@ -87,7 +87,10 @@ def build_retrieval_query(explanation: Explanation) -> str:
     else:
         parts.append("terms and conditions communicated to the borrower on sanction")
     if explanation.is_new_to_credit:
-        parts.append("applicant has no credit bureau record, new to credit, assessed on alternative data")
+        parts.append(
+            "applicant has no credit bureau record, new to credit, "
+            "assessed on alternative data"
+        )
         parts.append("consent for sharing bank transaction data")
     parts.extend(reason.label.lower() for reason in explanation.adverse_reasons[:3])
     return "; ".join(parts)

@@ -1,0 +1,69 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+
+      - name: Set up Python
+        run: uv python install 3.12
+
+      - name: Install dependencies
+        run: uv pip install --system -e ".[dev]"
+
+      # The embedding model is ~67MB and is fetched on first use. Caching it
+      # keeps CI off the network on repeat runs.
+      - name: Cache embedding model
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/huggingface
+          key: hf-bge-small-en-v1.5
+
+      - name: Lint
+        run: ruff check backend ml eval scripts
+
+      - name: Train the model
+        # Artifacts are git-ignored by design: they are build outputs, not
+        # source. Producing them here also verifies the training pipeline runs
+        # end to end on a clean machine.
+        run: python scripts/train.py
+
+      - name: Test
+        run: pytest --cov=backend/app --cov=ml --cov-report=term
+        env:
+          JWT_SECRET: ci-only-secret-not-used-for-anything-else
+          DATABASE_URL: postgresql+psycopg://unused:unused@localhost:5432/unused
+          DEMO_UNDERWRITER_PASSWORD: ci-underwriter-pw
+          DEMO_APPLICANT_PASSWORD: ci-applicant-pw
+
+  frontend:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: frontend
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: npm ci
+      - name: Type-check and build
+        run: npm run build

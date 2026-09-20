@@ -37,7 +37,10 @@ def _format_value(feature: str, value) -> str:
     """Render a feature value in units a person recognises."""
     if value is None:
         return "not available"
-    if feature in {"monthly_income_declared", "loan_amount_requested", "avg_balance_3m", "upi_inflow_median"}:
+    if feature in {
+        "monthly_income_declared", "loan_amount_requested",
+        "avg_balance_3m", "upi_inflow_median",
+    }:
         return f"Rs {float(value):,.0f}"
     if feature == "days_balance_below_500":
         return f"{float(value):.0f} of the last 90 days"

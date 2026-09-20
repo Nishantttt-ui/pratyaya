@@ -50,7 +50,8 @@ def test_recourse_options_actually_flip_the_decision(population, explainer):
                     / max(counterfactual["monthly_income_declared"].iloc[0], 1), 0.01), 5.0)
             elif option.feature == "loan_tenure_months":
                 counterfactual["emi_to_income"] = min(max(
-                    (counterfactual["loan_amount_requested"].iloc[0] * 1.17 / max(option.target_value, 1))
+                    (counterfactual["loan_amount_requested"].iloc[0] * 1.17
+                     / max(option.target_value, 1))
                     / max(counterfactual["monthly_income_declared"].iloc[0], 1), 0.01), 5.0)
             assert explainer.predict_proba(counterfactual)[0] <= explainer.threshold + 1e-9
             checked += 1

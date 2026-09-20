@@ -114,8 +114,6 @@ def audit_attribute(
         if n == 0:
             continue
         group_approved = approved[mask]
-        group_repay = would_repay[mask]
-
         qualified = mask & would_repay
         qualified_rate = (
             float(approved[qualified].mean()) if qualified.sum() else float("nan")
@@ -136,14 +134,19 @@ def audit_attribute(
         )
 
     approval_rates = [r.approval_rate for r in results if r.n > 0]
-    qualified_rates = [r.qualified_approval_rate for r in results if not np.isnan(r.qualified_approval_rate)]
+    qualified_rates = [
+        r.qualified_approval_rate for r in results
+        if not np.isnan(r.qualified_approval_rate)
+    ]
 
     di_ratio = (
         float(min(approval_rates) / max(approval_rates))
         if approval_rates and max(approval_rates) > 0
         else float("nan")
     )
-    qualified_gap = float(max(qualified_rates) - min(qualified_rates)) if qualified_rates else float("nan")
+    qualified_gap = (
+        float(max(qualified_rates) - min(qualified_rates)) if qualified_rates else float("nan")
+    )
 
     return FairnessReport(
         attribute=attribute_name,

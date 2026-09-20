@@ -26,7 +26,6 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-import numpy as np  # noqa: E402
 import pandas as pd  # noqa: E402
 from sklearn.metrics import roc_auc_score  # noqa: E402
 from sklearn.model_selection import train_test_split  # noqa: E402
@@ -93,16 +92,20 @@ def main() -> None:
     print(f"population {N:,} | train {len(X_train):,} | test {len(X_test):,}\n")
 
     runs = []
+    trad, incl = TRADITIONAL_FEATURES, INCLUSIVE_FEATURES
     steps = [
-        ("Baseline (bureau only)", lambda: run_baseline(X_train, y_train, X_test, TRADITIONAL_FEATURES)),
+        ("Baseline (bureau only)",
+         lambda: run_baseline(X_train, y_train, X_test, trad)),
         ("Alternative data (this project)",
-         lambda: run_baseline(X_train, y_train, X_test, INCLUSIVE_FEATURES)),
+         lambda: run_baseline(X_train, y_train, X_test, incl)),
         ("CorrelationRemover",
-         lambda: run_correlation_remover(X_train, y_train, X_test, TRADITIONAL_FEATURES, ATTRIBUTE)),
+         lambda: run_correlation_remover(X_train, y_train, X_test, trad, ATTRIBUTE)),
         ("ExponentiatedGradient",
-         lambda: run_exponentiated_gradient(X_train, y_train, X_test, y_test, TRADITIONAL_FEATURES, ATTRIBUTE)),
+         lambda: run_exponentiated_gradient(
+             X_train, y_train, X_test, y_test, trad, ATTRIBUTE)),
         ("ThresholdOptimizer",
-         lambda: run_threshold_optimizer(X_train, y_train, X_test, y_test, TRADITIONAL_FEATURES, ATTRIBUTE)),
+         lambda: run_threshold_optimizer(
+             X_train, y_train, X_test, y_test, trad, ATTRIBUTE)),
     ]
 
     for label, fn in steps:
@@ -135,10 +138,12 @@ def main() -> None:
     } for r in runs])
 
     print("\n" + "=" * 96)
-    print(f"BIAS MITIGATION COMPARED  (approval rate fixed at {APPROVAL_RATE:.0%}, attribute = {ATTRIBUTE})")
+    print(f"BIAS MITIGATION COMPARED  (approval rate fixed at {APPROVAL_RATE:.0%}, "
+          f"attribute = {ATTRIBUTE})")
     print("=" * 96)
     print(table.to_string(index=False))
-    print("\n'needs_attr' = the strategy must read the applicant's protected attribute at DECISION time.")
+    print("\n'needs_attr' = the strategy must read the applicant's protected "
+          "attribute at DECISION time.")
     print("'usable'     = emits a score that can be thresholded at a chosen approval rate.")
     for r in runs:
         if r["degenerate"]:

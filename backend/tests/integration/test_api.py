@@ -152,7 +152,8 @@ def test_out_of_range_input_is_rejected(client, underwriter_headers, mutation):
 
 def test_personal_identifiers_are_refused_at_the_boundary(client, underwriter_headers):
     """The model has no business receiving a PAN, so the request is refused."""
-    for field, value in (("pan", "ABCDE1234F"), ("aadhaar", "432187652109"), ("phone", "9876543210")):
+    identifiers = (("pan", "ABCDE1234F"), ("aadhaar", "432187652109"), ("phone", "9876543210"))
+    for field, value in identifiers:
         response = client.post(
             "/api/v1/assessments",
             json={**APPLICATION, field: value},

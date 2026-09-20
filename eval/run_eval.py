@@ -56,7 +56,9 @@ def evaluate_retrieval() -> dict:
         if cid not in known
     }
     if unknown:
-        raise ValueError(f"golden set references provisions absent from the corpus: {sorted(unknown)}")
+        raise ValueError(
+            f"golden set references provisions absent from the corpus: {sorted(unknown)}"
+        )
 
     ideal_at_1 = relevant_at_1 = relevant_at_3 = relevant_at_5 = 0
     reciprocal_ranks: list[float] = []
@@ -225,9 +227,11 @@ def main() -> None:
     combined = guardrails["combined"]
     print(f"\nGUARDRAILS  ({len(guardrails['failures'])} misclassified)")
     print(f"  inbound  F1  {guardrails['inbound']['f1']:.3f}   "
-          f"precision {guardrails['inbound']['precision']:.3f}  recall {guardrails['inbound']['recall']:.3f}")
+          f"precision {guardrails['inbound']['precision']:.3f}  "
+          f"recall {guardrails['inbound']['recall']:.3f}")
     print(f"  outbound F1  {guardrails['outbound']['f1']:.3f}   "
-          f"precision {guardrails['outbound']['precision']:.3f}  recall {guardrails['outbound']['recall']:.3f}")
+          f"precision {guardrails['outbound']['precision']:.3f}  "
+          f"recall {guardrails['outbound']['recall']:.3f}")
     print(f"  combined F1  {combined['f1']:.3f}   accuracy {combined['accuracy']:.3f}")
 
     print(f"\nFAITHFULNESS  ({faithfulness['n_applicants']} applicants)")
@@ -249,7 +253,7 @@ def main() -> None:
             print(f"  [{failure['kind']}] expected_block={failure['expected_block']} "
                   f"got={failure['did_block']}  {failure['text'][:48]}")
 
-    print(f"\nreport -> eval/reports/evaluation.json")
+    print("\nreport -> eval/reports/evaluation.json")
 
 
 if __name__ == "__main__":

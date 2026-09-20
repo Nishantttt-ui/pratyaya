@@ -94,7 +94,9 @@ IDENTIFIER_COLUMNS = ["applicant_id"]
 TARGET_COLUMN = "default_12m"
 
 EMPLOYMENT_TYPES = ["salaried_formal", "salaried_informal", "self_employed", "gig_worker", "agri"]
-LOAN_PURPOSES = ["consumer_durable", "education", "medical", "business_working_capital", "two_wheeler"]
+LOAN_PURPOSES = [
+    "consumer_durable", "education", "medical", "business_working_capital", "two_wheeler",
+]
 EDUCATION_LEVELS = ["upto_secondary", "higher_secondary", "graduate", "postgraduate"]
 REGION_TIERS = ["metro", "tier2", "tier3", "rural"]
 
@@ -149,7 +151,11 @@ def generate_population(config: GeneratorConfig | None = None) -> pd.DataFrame:
          employment_type == "self_employed", employment_type == "gig_worker"],
         [1.0, 0.55, 0.45, 0.35], default=0.25,
     )
-    capacity = rng.normal(0.0, 1.0, n) + 0.45 * _zscore(formality) + 0.22 * _zscore(age.astype(float))
+    capacity = (
+        rng.normal(0.0, 1.0, n)
+        + 0.45 * _zscore(formality)
+        + 0.22 * _zscore(age.astype(float))
+    )
     willingness = rng.normal(0.0, 1.0, n) + 0.18 * _zscore(
         np.searchsorted(EDUCATION_LEVELS, education).astype(float)
     )
@@ -161,22 +167,35 @@ def generate_population(config: GeneratorConfig | None = None) -> pd.DataFrame:
     # ------------------------------------------------------------------
     # 3. Observable banking / UPI behaviour - noisy functions of the latents.
     # ------------------------------------------------------------------
-    salary_regularity = np.clip(_sigmoid(1.5 * capacity + 1.8 * (formality - 0.5)) + rng.normal(0, 0.19, n), 0, 1)
+    salary_regularity = np.clip(
+        _sigmoid(1.5 * capacity + 1.8 * (formality - 0.5)) + rng.normal(0, 0.19, n), 0, 1
+    )
     upi_inflow_cv = np.clip(0.62 - 0.17 * capacity + rng.normal(0, 0.25, n), 0.05, 1.6)
-    avg_balance_3m = np.clip(true_income * (0.10 + 0.13 * _sigmoid(capacity)) * np.exp(rng.normal(0, 0.42, n)), 120, None)
+    avg_balance_3m = np.clip(
+        true_income * (0.10 + 0.13 * _sigmoid(capacity)) * np.exp(rng.normal(0, 0.42, n)),
+        120, None,
+    )
     days_balance_below_500 = np.clip(
         rng.binomial(90, np.clip(_sigmoid(-0.95 * capacity - 0.4) * 0.55, 0.01, 0.95)), 0, 90
     )
     upi_txn_count_3m = np.clip(rng.poisson(np.clip(46 + 26 * _sigmoid(capacity), 5, None)), 0, None)
-    upi_merchant_diversity = np.clip(rng.poisson(np.clip(8 + 7 * _sigmoid(capacity), 1, None)), 0, None)
+    upi_merchant_diversity = np.clip(
+        rng.poisson(np.clip(8 + 7 * _sigmoid(capacity), 1, None)), 0, None
+    )
     upi_inflow_median = np.clip(true_income * rng.uniform(0.35, 0.85, n) / 3.0, 200, None)
 
     # ------------------------------------------------------------------
     # 4. Telecom / utility punctuality - mostly a willingness signal.
     # ------------------------------------------------------------------
-    utility_ontime_ratio = np.clip(_sigmoid(1.35 * willingness + 0.45) + rng.normal(0, 0.17, n), 0, 1)
-    recharge_regularity = np.clip(_sigmoid(1.15 * willingness + 0.30 * capacity) + rng.normal(0, 0.20, n), 0, 1)
-    mobile_tenure_months = np.clip(rng.gamma(3.1, 13.0, n) * (0.75 + 0.5 * _sigmoid(willingness)), 1, 240).round()
+    utility_ontime_ratio = np.clip(
+        _sigmoid(1.35 * willingness + 0.45) + rng.normal(0, 0.17, n), 0, 1
+    )
+    recharge_regularity = np.clip(
+        _sigmoid(1.15 * willingness + 0.30 * capacity) + rng.normal(0, 0.20, n), 0, 1
+    )
+    mobile_tenure_months = np.clip(
+        rng.gamma(3.1, 13.0, n) * (0.75 + 0.5 * _sigmoid(willingness)), 1, 240
+    ).round()
     sim_changes_12m = rng.poisson(np.clip(0.75 - 0.42 * _sigmoid(willingness), 0.03, None))
 
     # ------------------------------------------------------------------
@@ -227,7 +246,9 @@ def generate_population(config: GeneratorConfig | None = None) -> pd.DataFrame:
     )
     is_ntc = rng.random(n) < _sigmoid(ntc_logit)
 
-    bureau_score = np.clip(620 + 62 * capacity + 30 * willingness + rng.normal(0, 62, n), 300, 900).round()
+    bureau_score = np.clip(
+        620 + 62 * capacity + 30 * willingness + rng.normal(0, 62, n), 300, 900
+    ).round()
     credit_history_months = np.clip(rng.gamma(2.6, 17.0, n), 0, 340).round()
     num_existing_loans = rng.poisson(np.clip(1.15 + 0.55 * _sigmoid(capacity), 0.05, None))
     enquiries_6m = rng.poisson(np.clip(1.5 - 0.45 * _sigmoid(capacity), 0.05, None))

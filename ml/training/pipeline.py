@@ -170,7 +170,8 @@ def train_model(
         X, y, np.arange(len(frame)), test_size=cfg.test_size, stratify=y, random_state=cfg.seed
     )
     X_fit, X_cal, y_fit, y_cal = train_test_split(
-        X_fit_cal, y_fit_cal, test_size=cfg.calibration_size, stratify=y_fit_cal, random_state=cfg.seed
+        X_fit_cal, y_fit_cal, test_size=cfg.calibration_size,
+        stratify=y_fit_cal, random_state=cfg.seed,
     )
 
     booster = HistGradientBoostingClassifier(

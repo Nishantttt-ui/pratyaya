@@ -26,7 +26,6 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 import joblib
-import numpy as np
 import pandas as pd
 
 from ml.data.generator import (
@@ -81,6 +80,28 @@ def _evaluate(df: pd.DataFrame, features: list[str], label: str) -> dict:
     return {"model": model, "eval": ev, "summary": summary, "threshold": threshold}
 
 
+def _deltas(traditional: dict, inclusive: dict) -> dict:
+    """Inclusive minus traditional, for each headline measure."""
+    trad_gender = traditional["fairness"]["gender"]
+    incl_gender = inclusive["fairness"]["gender"]
+    return {
+        "roc_auc": inclusive["roc_auc"] - traditional["roc_auc"],
+        "bad_rate_among_approved": (
+            inclusive["bad_rate_among_approved"] - traditional["bad_rate_among_approved"]
+        ),
+        "creditworthy_ntc_approval_rate": (
+            inclusive["creditworthy_ntc_approval_rate"]
+            - traditional["creditworthy_ntc_approval_rate"]
+        ),
+        "disparate_impact_gender": (
+            incl_gender["disparate_impact_ratio"] - trad_gender["disparate_impact_ratio"]
+        ),
+        "qualified_approval_gap_gender": (
+            incl_gender["qualified_approval_gap"] - trad_gender["qualified_approval_gap"]
+        ),
+    }
+
+
 def main() -> None:
     for directory in (ARTIFACTS, REPORTS, DATA):
         directory.mkdir(parents=True, exist_ok=True)
@@ -122,17 +143,7 @@ def main() -> None:
         "approval_rate_held_at": APPROVAL_RATE,
         "traditional": traditional["summary"],
         "inclusive": inclusive["summary"],
-        "deltas": {
-            "roc_auc": inclusive["summary"]["roc_auc"] - traditional["summary"]["roc_auc"],
-            "bad_rate_among_approved": inclusive["summary"]["bad_rate_among_approved"]
-            - traditional["summary"]["bad_rate_among_approved"],
-            "creditworthy_ntc_approval_rate": inclusive["summary"]["creditworthy_ntc_approval_rate"]
-            - traditional["summary"]["creditworthy_ntc_approval_rate"],
-            "disparate_impact_gender": inclusive["summary"]["fairness"]["gender"]["disparate_impact_ratio"]
-            - traditional["summary"]["fairness"]["gender"]["disparate_impact_ratio"],
-            "qualified_approval_gap_gender": inclusive["summary"]["fairness"]["gender"]["qualified_approval_gap"]
-            - traditional["summary"]["fairness"]["gender"]["qualified_approval_gap"],
-        },
+        "deltas": _deltas(traditional["summary"], inclusive["summary"]),
     }
     (ARTIFACTS / "metrics.json").write_text(json.dumps(results, indent=2, default=float))
     (REPORTS / "inclusion_experiment.json").write_text(json.dumps(results, indent=2, default=float))

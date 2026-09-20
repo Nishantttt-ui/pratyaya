@@ -85,7 +85,10 @@ def load_german_credit() -> Benchmark:
     ).astype(str)
 
     features = [c for c in raw.columns if c not in {"default", *protected}]
-    categoricals = [c for c in features if raw[c].dtype == object or str(raw[c].dtype) == "category"]
+    categoricals = [
+        c for c in features
+        if raw[c].dtype == object or str(raw[c].dtype) == "category"
+    ]
 
     return Benchmark(
         name="German Credit (Statlog)",

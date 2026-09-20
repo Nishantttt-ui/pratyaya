@@ -135,7 +135,9 @@ class CreditExplainer:
             meaning = describe(feature)
             raw_value = row.get(feature)
             value = None if pd.isna(raw_value) else (
-                float(raw_value) if isinstance(raw_value, (int, float, np.number)) else str(raw_value)
+                float(raw_value)
+                if isinstance(raw_value, (int, float, np.number))
+                else str(raw_value)
             )
             # Positive SHAP raises the log-odds of default, i.e. pushes to decline.
             is_adverse = contribution > 0

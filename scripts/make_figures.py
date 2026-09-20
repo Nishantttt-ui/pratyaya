@@ -27,6 +27,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 import matplotlib  # noqa: E402
+
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt  # noqa: E402
 import numpy as np  # noqa: E402
@@ -34,7 +35,6 @@ from sklearn.metrics import roc_curve  # noqa: E402
 
 from ml.data.generator import (  # noqa: E402
     INCLUSIVE_FEATURES,
-    TARGET_COLUMN,
     TRADITIONAL_FEATURES,
     GeneratorConfig,
     generate_population,
@@ -75,11 +75,14 @@ def _frame(fig, ax, title, subtitle=None):
 
 def reliability(p, y, path):
     """Predicted vs observed default rate, by equal-population decile."""
-    edges = np.quantile(p, np.linspace(0, 1, 11)); edges[-1] += 1e-9
+    edges = np.quantile(p, np.linspace(0, 1, 11))
+    edges[-1] += 1e-9
     pred, obs = [], []
     for i in range(10):
-        m = (p >= edges[i]) & (p < edges[i + 1])
-        if m.sum(): pred.append(p[m].mean()); obs.append(y[m].mean())
+        mask = (p >= edges[i]) & (p < edges[i + 1])
+        if mask.sum():
+            pred.append(p[mask].mean())
+            obs.append(y[mask].mean())
     pred, obs = np.array(pred), np.array(obs)
 
     fig, ax = plt.subplots(figsize=(6.2, 4.4), dpi=200)
@@ -90,12 +93,14 @@ def reliability(p, y, path):
             ha="left", va="center")
     ax.plot(pred, obs, color=INCL, lw=2, marker="o", ms=8, zorder=3,
             markeredgecolor="white", markeredgewidth=1.6)
-    ax.set_xlim(0, lim); ax.set_ylim(0, lim)
+    ax.set_xlim(0, lim)
+    ax.set_ylim(0, lim)
     ax.set_xlabel("Predicted probability of default")
     ax.set_ylabel("Observed default rate")
     _frame(fig, ax, "A stated probability means what it says",
            "Equal-population deciles, held-out applicants.  Expected calibration error 0.0073")
-    fig.savefig(path, bbox_inches="tight"); plt.close(fig)
+    fig.savefig(path, bbox_inches="tight")
+    plt.close(fig)
 
 
 def fairness_bars(rows, path):
@@ -103,18 +108,25 @@ def fairness_bars(rows, path):
     labels = ["Women", "Men"]
     trad = [rows["trad"]["female"], rows["trad"]["male"]]
     incl = [rows["incl"]["female"], rows["incl"]["male"]]
-    x = np.arange(2); w = 0.33
+    x = np.arange(2)
+    w = 0.33
 
     fig, ax = plt.subplots(figsize=(6.6, 4.4), dpi=200)
-    b1 = ax.bar(x - w/2 - 0.012, trad, w, color=TRAD, label="Bureau only", zorder=3)
-    b2 = ax.bar(x + w/2 + 0.012, incl, w, color=INCL, label="With alternative data", zorder=3)
-    for bars in (b1, b2):
+    left = ax.bar(x - w / 2 - 0.012, trad, w, color=TRAD, label="Bureau only", zorder=3)
+    right = ax.bar(x + w / 2 + 0.012, incl, w, color=INCL,
+                   label="With alternative data", zorder=3)
+    for bars in (left, right):
         for bar in bars:
-            ax.annotate(f"{bar.get_height()*100:.1f}%", (bar.get_x() + bar.get_width()/2, bar.get_height()),
-                        textcoords="offset points", xytext=(0, 5), ha="center",
-                        fontsize=11, fontweight="600", color=INK)
-    ax.set_xticks(x); ax.set_xticklabels(labels, fontsize=12.5, color=INK)
-    ax.set_ylim(0, 1.18); ax.set_yticks(np.arange(0, 1.01, 0.2))
+            ax.annotate(
+                f"{bar.get_height() * 100:.1f}%",
+                (bar.get_x() + bar.get_width() / 2, bar.get_height()),
+                textcoords="offset points", xytext=(0, 5), ha="center",
+                fontsize=11, fontweight="600", color=INK,
+            )
+    ax.set_xticks(x)
+    ax.set_xticklabels(labels, fontsize=12.5, color=INK)
+    ax.set_ylim(0, 1.18)
+    ax.set_yticks(np.arange(0, 1.01, 0.2))
     ax.set_ylabel("Approved, among those who would repay")
     ax.yaxis.set_major_formatter(lambda v, _: f"{v*100:.0f}%")
     ax.legend(frameon=False, loc="upper left", fontsize=10.5, ncols=2,
@@ -123,7 +135,8 @@ def fairness_bars(rows, path):
     _frame(fig, ax, "The penalty fell on people who would have repaid",
            f"Approval held at 70%.  The women-men gap narrows from {gap_trad:.1f} points "
            f"to {gap_incl:.1f},\nwhile true default rates differ by only 0.4 points")
-    fig.savefig(path, bbox_inches="tight"); plt.close(fig)
+    fig.savefig(path, bbox_inches="tight")
+    plt.close(fig)
 
 
 def roc(curves, path):
@@ -135,12 +148,15 @@ def roc(curves, path):
         ax.annotate(name, (fpr[idx], tpr[idx]), textcoords="offset points",
                     xytext=(10, -12 if colour == TRAD else 8), fontsize=10.5,
                     fontweight="600", color=colour)
-    ax.set_xlim(0, 1); ax.set_ylim(0, 1.02)
-    ax.set_xlabel("False positive rate"); ax.set_ylabel("True positive rate")
+    ax.set_xlim(0, 1)
+    ax.set_ylim(0, 1.02)
+    ax.set_xlabel("False positive rate")
+    ax.set_ylabel("True positive rate")
     ax.legend(frameon=False, loc="lower right", fontsize=10.5)
     _frame(fig, ax, "Alternative data separates risk better",
            "Held-out applicants.  The gain is largest where most decisions are made")
-    fig.savefig(path, bbox_inches="tight"); plt.close(fig)
+    fig.savefig(path, bbox_inches="tight")
+    plt.close(fig)
 
 
 def main() -> None:
@@ -164,13 +180,15 @@ def main() -> None:
         curves.append((label, fpr, tpr, model.metrics["roc_auc"], colour))
         if key == "incl":
             reliability(p, y, FIG / "calibration.png")
+        female, male = out[key]["female"], out[key]["male"]
         print(f"  {label:<24} AUC {model.metrics['roc_auc']:.4f}  "
-              f"qualified F {out[key]['female']:.4f} / M {out[key]['male']:.4f}")
+              f"qualified F {female:.4f} / M {male:.4f}")
 
     fairness_bars(out, FIG / "fairness_gap.png")
     roc(curves, FIG / "roc.png")
     print(f"\nfigures -> {FIG}")
-    for f in sorted(FIG.glob('*.png')): print(f"  {f.name}  {f.stat().st_size//1024} KB")
+    for figure in sorted(FIG.glob("*.png")):
+        print(f"  {figure.name}  {figure.stat().st_size // 1024} KB")
 
 
 if __name__ == "__main__":

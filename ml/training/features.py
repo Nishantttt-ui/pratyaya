@@ -36,8 +36,12 @@ import pandas as pd
 # the usual source of silent train/serve skew.
 CATEGORICAL_VOCAB: dict[str, list[str]] = {
     "education": ["upto_secondary", "higher_secondary", "graduate", "postgraduate"],
-    "employment_type": ["salaried_formal", "salaried_informal", "self_employed", "gig_worker", "agri"],
-    "loan_purpose": ["consumer_durable", "education", "medical", "business_working_capital", "two_wheeler"],
+    "employment_type": [
+        "salaried_formal", "salaried_informal", "self_employed", "gig_worker", "agri",
+    ],
+    "loan_purpose": [
+        "consumer_durable", "education", "medical", "business_working_capital", "two_wheeler",
+    ],
 }
 
 

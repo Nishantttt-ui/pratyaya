@@ -152,6 +152,8 @@ class AssessmentResponse(BaseModel):
 
 class TokenResponse(BaseModel):
     access_token: str
-    token_type: Literal["bearer"] = "bearer"
+    # ruff flags any literal named *_token as a possible credential. "bearer"
+    # is the OAuth 2.0 token *type*, defined by RFC 6750, not a secret.
+    token_type: Literal["bearer"] = "bearer"  # noqa: S105
     role: str
     expires_in_minutes: int

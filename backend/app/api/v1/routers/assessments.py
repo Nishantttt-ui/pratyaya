@@ -10,8 +10,8 @@ from fastapi import APIRouter, Depends, Query, Request
 from backend.app.api.deps import ServiceDep
 from backend.app.core.security import Role, TokenSubject, get_current_user
 from backend.app.schemas.assessment import (
-    AssessmentResponse,
     ApplicantInput,
+    AssessmentResponse,
     CitationOut,
     ProvenanceOut,
     ReasonCodeOut,

@@ -20,7 +20,7 @@ from ml.training.features import build_design_matrix, design_columns, source_fea
 
 def test_design_matrix_is_entirely_numeric(population, explainer):
     matrix = build_design_matrix(population.head(200), explainer.features)
-    assert all(dtype == float for dtype in matrix.dtypes)
+    assert all(np.issubdtype(dtype, np.floating) for dtype in matrix.dtypes)
 
 
 def test_design_matrix_preserves_missing_bureau_values(population, explainer):
