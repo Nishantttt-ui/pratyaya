@@ -23,6 +23,10 @@ class Settings(BaseSettings):
         case_sensitive=False,
     )
 
+    # --- Model artifacts ---
+    model_path: str = "ml/artifacts/model.joblib"
+    policy_corpus_path: str = "data/policy"
+
     # --- Application ---
     app_env: Literal["local", "test", "staging", "production"] = "local"
     log_level: str = "INFO"
@@ -48,6 +52,13 @@ class Settings(BaseSettings):
     ollama_base_url: str = "http://localhost:11434"
     aws_region: str = "ap-south-1"
     bedrock_model_id: str = "anthropic.claude-3-5-sonnet-20241022-v2:0"
+
+    # --- Demo accounts ---
+    # Seeded only so the prototype can be run and reviewed. If unset in local
+    # mode a random password is generated at startup and printed once to the
+    # console, so the service never ships with a known default credential.
+    demo_underwriter_password: SecretStr | None = None
+    demo_applicant_password: SecretStr | None = None
 
     # --- Retrieval ---
     embedding_model: str = "BAAI/bge-small-en-v1.5"
