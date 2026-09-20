@@ -39,6 +39,13 @@ class FeatureMeaning:
     actionability: Actionability
     unit: str = ""
     recourse_hint: str | None = None
+    # A derived feature is computed from others and cannot be moved on its own.
+    # It still earns a reason code - the applicant should be told their
+    # instalment is too large relative to income - but it must never be offered
+    # as recourse, because "lower your instalment-to-income ratio" is not an
+    # action. The actions are "borrow less" or "repay over longer", which are
+    # offered separately.
+    is_derived: bool = False
 
 
 FEATURE_DICTIONARY: dict[str, FeatureMeaning] = {
@@ -76,6 +83,7 @@ FEATURE_DICTIONARY: dict[str, FeatureMeaning] = {
         "Instalment-to-income ratio", "monthly instalment is large relative to your income",
         "comfortable instalment relative to your income", True, Actionability.IMMEDIATE, "ratio",
         recourse_hint="Reduce the amount or extend the tenure to lower this ratio.",
+        is_derived=True,
     ),
     # --- bureau ---
     "is_new_to_credit": FeatureMeaning(
@@ -166,4 +174,10 @@ def describe(feature: str) -> FeatureMeaning:
 
 
 def is_actionable(feature: str) -> bool:
-    return describe(feature).actionability is not Actionability.FIXED
+    """True when recourse may be offered for this feature.
+
+    Derived features are excluded: they carry signal, but they are not levers
+    the applicant can pull directly.
+    """
+    meaning = describe(feature)
+    return meaning.actionability is not Actionability.FIXED and not meaning.is_derived

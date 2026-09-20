@@ -101,7 +101,7 @@ def find_recourse(
     options: list[RecourseOption] = []
     for feature in explainer.features:
         meaning = describe(feature)
-        if meaning.actionability is Actionability.FIXED:
+        if meaning.actionability is Actionability.FIXED or meaning.is_derived:
             continue
         if feature not in population.columns:
             continue
