@@ -61,6 +61,7 @@ dev = [
 pythonpath = ["backend", "."]
 testpaths = ["backend/tests", "eval"]
 addopts = "-q --strict-markers"
+asyncio_mode = "auto"
 markers = [
     "integration: requires a live database or network",
 ]

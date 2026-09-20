@@ -82,13 +82,18 @@ class Settings(BaseSettings):
         return [origin.strip() for origin in self.cors_origins.split(",") if origin.strip()]
 
     def active_llm_key(self) -> SecretStr | None:
-        """Return the API key belonging to the currently selected provider."""
+        """Return the API key belonging to the currently selected provider.
+
+        Returns None for an unrecognised provider rather than raising, so that
+        the factory can report the unsupported name with a clear message
+        instead of surfacing a bare KeyError from here.
+        """
         return {
             "gemini": self.gemini_api_key,
             "groq": self.groq_api_key,
             "ollama": None,  # local, unauthenticated
             "bedrock": None,  # resolved via the AWS credential chain
-        }[self.llm_provider]
+        }.get(self.llm_provider)
 
 
 @lru_cache
