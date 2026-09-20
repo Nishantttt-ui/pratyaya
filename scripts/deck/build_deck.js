@@ -1,4 +1,6 @@
 const pptxgen = require("pptxgenjs");
+const path = require("path");
+const FIG = path.join(__dirname, "..", "..", "docs", "figures");
 
 // ---- palette: deep forest green (trust, money) dominant, ink navy support,
 // ---- warm amber reserved exclusively for the disparity/penalty numbers.
@@ -173,6 +175,37 @@ cardRow(s, 2.85, 2.6, [
 callout(s, 5.7, "Knowing the ground truth is what makes the result provable. On a real portfolio a rejected applicant's counterfactual repayment is never observed, so the central claim could be argued but not measured.", AMBER_PALE, AMBER, INK, 0.8);
 s.addNotes("Expect to be challenged on synthetic data. The answer is that the alternative is not real data, it is a US or Czech dataset relabelled as Indian. And ground truth is what lets us prove the mechanism.");
 
+// ================= 6b. VALIDATION ON REAL DATA =================
+s = pres.addSlide(); s.background = { color: WHITE };
+title(s, "The same pipeline, run on real credit data");
+lede(s, "The obvious objection to a synthetic population is that the result could be an artefact of the generator. So the identical code path - design matrix, booster, calibration, TreeSHAP, fairness audit - was run over two real public datasets with genuinely observed defaults.", 1.45, MUTED, 11.9);
+const vrows = [
+  [{ text: "Dataset", options: { bold: true, color: WHITE, align: "left" } },
+   { text: "Rows", options: { bold: true, color: WHITE } },
+   { text: "AUC", options: { bold: true, color: WHITE } },
+   { text: "KS", options: { bold: true, color: WHITE } },
+   { text: "Calibration err", options: { bold: true, color: WHITE } },
+   { text: "TreeSHAP error", options: { bold: true, color: WHITE } }],
+  ["German Credit (Statlog)", "1,000", "0.7464", "0.3752", "0.0772", "2.7e-15"],
+  ["Taiwan Default of Credit Card Clients", "30,000", "0.7829", "0.4391", "0.0222", "4.0e-15"],
+  [{ text: "This project, synthetic", options: { bold: true } }, { text: "30,000", options: { bold: true } },
+   { text: "0.7797", options: { bold: true, color: GREEN } }, { text: "0.4127", options: { bold: true, color: GREEN } },
+   { text: "0.0073", options: { bold: true, color: GREEN } }, { text: "5.2e-15", options: { bold: true, color: GREEN } }],
+];
+s.addTable(vrows, { x: M, y: 2.75, w: W, colW: [4.3, 1.3, 1.5, 1.5, 1.9, 1.7], rowH: 0.42,
+  fontFace: BODY, fontSize: 12.5, color: INK, valign: "middle", align: "center",
+  border: { type: "solid", color: BORDER, pt: 0.5 }, fill: { color: WHITE }, autoPage: false });
+s.addShape(pres.ShapeType.rect, { x: M, y: 2.75, w: W, h: 0.42, fill: { color: INK }, line: { type: "none" } });
+[["Dataset", 4.3, "left"], ["Rows", 1.3, "center"], ["AUC", 1.5, "center"], ["KS", 1.5, "center"],
+ ["Calibration err", 1.9, "center"], ["TreeSHAP error", 1.7, "center"]].reduce((x, c) => {
+  s.addText(c[0], { x: c[2] === "left" ? x + 0.15 : x, y: 2.75, w: c[2] === "left" ? c[1] - 0.2 : c[1], h: 0.42, isTextBox: true, margin: 0,
+    align: c[2], valign: "middle", fontFace: BODY, fontSize: 12, bold: true, color: WHITE });
+  return x + c[1];
+}, M);
+callout(s, 4.6, "Our synthetic population's difficulty sits between the two real datasets, which is the answer to \u201Cyou tuned it to a flattering level\u201D. TreeSHAP stays exact on real data. The audit also found a genuine violation rather than rubber-stamping: age band on German Credit fails the 80% rule at 0.783.", GREEN_PALE, GREEN, INK, 1.0);
+callout(s, 5.75, "What this does NOT establish: neither dataset carries alternative data, so the inclusion finding cannot be reproduced on them. That claim rests on the synthetic population, and this deck says so.", AMBER_PALE, AMBER, INK, 0.85);
+s.addNotes("Lead with this when challenged on synthetic data. The machinery is validated on real defaults; only the inclusion comparison needs the generator. Note we report the scope limit ourselves.");
+
 // ================= 7. EXPERIMENT =================
 s = pres.addSlide(); s.background = { color: INK };
 s.addText("THE EXPERIMENT", { x: M, y: 1.15, w: W, h: 0.3, isTextBox: true, margin: 0,
@@ -206,18 +239,18 @@ const rows = [
   [{ text: "Qualified-approval gap", options: { bold: true } }, { text: "0.1083", options: { bold: true } },
    { text: "0.0341", options: { color: GREEN, bold: true } }, { text: "− 0.074", options: { color: GREEN, bold: true } }],
 ];
-s.addTable(rows, { x: M, y: 1.5, w: W, colW: [5.3, 2.2, 2.6, 2.1], rowH: 0.44,
+s.addTable(rows, { x: M, y: 1.5, w: 7.6, colW: [3.3, 1.35, 1.65, 1.3], rowH: 0.44,
   fontFace: BODY, fontSize: 13, color: INK, valign: "middle", align: "center",
   border: { type: "solid", color: BORDER, pt: 0.5 },
   fill: { color: WHITE },
   autoPage: false });
-s.addShape(pres.ShapeType.rect, { x: M, y: 1.5, w: W, h: 0.44, fill: { color: INK }, line: { type: "none" } });
-s.addText([{ text: "Measured on held-out data, approval rate pinned at 70%", options: { bold: true } }],
-  { x: M + 0.15, y: 1.5, w: 5.15, h: 0.44, isTextBox: true, margin: 0, valign: "middle", fontFace: BODY, fontSize: 12.5, color: WHITE });
-["Bureau only", "+ Alternative data", "Change"].forEach((t, i) => {
-  const xs = [M + 5.3, M + 7.5, M + 10.1], ws = [2.2, 2.6, 2.1];
-  s.addText(t, { x: xs[i], y: 1.5, w: ws[i], h: 0.44, isTextBox: true, margin: 0, align: "center", valign: "middle", fontFace: BODY, fontSize: 12.5, bold: true, color: WHITE });
+s.addShape(pres.ShapeType.rect, { x: M, y: 1.5, w: 7.6, h: 0.44, fill: { color: INK }, line: { type: "none" } });
+s.addText("Held out, approval pinned at 70%", { x: M + 0.12, y: 1.5, w: 3.18, h: 0.44, isTextBox: true, margin: 0, valign: "middle", fontFace: BODY, fontSize: 11, bold: true, color: WHITE });
+["Bureau only", "+ Alt data", "Change"].forEach((t, i) => {
+  const xs = [M + 3.3, M + 4.65, M + 6.3], ws = [1.35, 1.65, 1.3];
+  s.addText(t, { x: xs[i], y: 1.5, w: ws[i], h: 0.44, isTextBox: true, margin: 0, align: "center", valign: "middle", fontFace: BODY, fontSize: 11, bold: true, color: WHITE });
 });
+s.addImage({ path: path.join(FIG, "roc.png"), x: M + 7.95, y: 1.45, w: 4.25, h: 2.99 });
 callout(s, 5.45, "There is no accuracy-versus-fairness trade-off here — which is the point. The disparity was never a property of the algorithm, so it did not have to be bought back with accuracy.", GREEN_PALE, GREEN, INK, 0.8);
 s.addNotes("Note the bad rate falling. The inclusive model approves a fairer mix and takes on less risk doing it, because it is seeing more.");
 
@@ -225,25 +258,53 @@ s.addNotes("Note the bad rate falling. The inclusive model approves a fairer mix
 s = pres.addSlide(); s.background = { color: GREEN };
 s.addText("THE SAME RESULT, STATED AS PEOPLE", { x: M, y: 0.62, w: W, h: 0.3, isTextBox: true, margin: 0,
   fontFace: BODY, fontSize: 11.5, bold: true, color: "A9E3C6", charSpacing: 2.5 });
-s.addText("Among applicants who would have repaid", { x: M, y: 1.1, w: 11.4, h: 0.85, isTextBox: true, margin: 0,
-  fontFace: HEAD, fontSize: 36, color: WHITE, valign: "top" });
-[["Bureau only", "70.9%", "81.7%", "A 10.8-point penalty on women who would have paid the loan back.", "FFD9A8"],
- ["+ Alternative data", "75.5%", "78.9%", "The gap closes to 3.4 points — a 69% reduction.", "A9E3C6"]].forEach((b, i) => {
-  const cw = (W - 0.35) / 2, x = M + i * (cw + 0.35);
-  s.addShape(pres.ShapeType.roundRect, { x, y: 2.2, w: cw, h: 3.2, rectRadius: 0.1, fill: { color: GREEN_DEEP }, line: { type: "none" } });
-  s.addText(b[0], { x: x + 0.35, y: 2.42, w: cw - 0.7, h: 0.38, isTextBox: true, margin: 0, fontFace: BODY, fontSize: 14, bold: true, color: "A9E3C6" });
-  s.addText([{ text: b[1], options: { fontSize: 38, bold: true, color: WHITE, fontFace: HEAD } },
-             { text: "   women", options: { fontSize: 14, color: "A9E3C6" } }],
-    { x: x + 0.35, y: 2.88, w: cw - 0.7, h: 0.62, isTextBox: true, margin: 0, valign: "middle" });
-  s.addText([{ text: b[2], options: { fontSize: 38, bold: true, color: WHITE, fontFace: HEAD } },
-             { text: "   men", options: { fontSize: 14, color: "A9E3C6" } }],
-    { x: x + 0.35, y: 3.58, w: cw - 0.7, h: 0.62, isTextBox: true, margin: 0, valign: "middle" });
-  s.addText(b[3], { x: x + 0.35, y: 4.38, w: cw - 0.7, h: 0.75, isTextBox: true, margin: 0, fontFace: BODY, fontSize: 13.5, color: b[4], lineSpacing: 19 });
-});
-s.addText("More creditworthy women approved. Fewer defaults among those approved. The people the old model missed were not bad risks; they were invisible ones.",
-  { x: M, y: 5.6, w: 11.4, h: 0.75, isTextBox: true, margin: 0, fontFace: BODY, fontSize: 14.5, color: "D3EFE1", lineSpacing: 21 });
-footnote(s, "Ground truth: true default rates differ by 0.4 points across gender, so none of this gap is explained by risk", "7FBFA0");
+s.addText("Among applicants who would have repaid", { x: M, y: 1.05, w: 11.4, h: 0.8, isTextBox: true, margin: 0,
+  fontFace: HEAD, fontSize: 34, color: WHITE, valign: "top" });
+s.addShape(pres.ShapeType.roundRect, { x: M, y: 2.05, w: 6.6, h: 4.37, rectRadius: 0.1, fill: { color: WHITE }, line: { type: "none" } });
+s.addImage({ path: path.join(FIG, "fairness_gap.png"), x: M + 0.12, y: 2.17, w: 6.36, h: 4.21 });
+const pw = W - 6.6 - 0.35, px = M + 6.6 + 0.35;
+s.addShape(pres.ShapeType.roundRect, { x: px, y: 2.05, w: pw, h: 2.05, rectRadius: 0.1, fill: { color: GREEN_DEEP }, line: { type: "none" } });
+s.addText("10.8 \u2192 3.4", { x: px + 0.3, y: 2.25, w: pw - 0.6, h: 0.75, isTextBox: true, margin: 0, fontFace: HEAD, fontSize: 44, bold: true, color: WHITE });
+s.addText("percentage-point gap between creditworthy women and men. A 69% reduction.", { x: px + 0.3, y: 3.0, w: pw - 0.6, h: 0.95, isTextBox: true, margin: 0, fontFace: BODY, fontSize: 15, color: "A9E3C6", lineSpacing: 21 });
+s.addShape(pres.ShapeType.roundRect, { x: px, y: 4.32, w: pw, h: 2.1, rectRadius: 0.1, fill: { color: GREEN_DEEP }, line: { type: "none" } });
+s.addText("More creditworthy women approved. Fewer defaults among those approved. The people the old model missed were not bad risks \u2014 they were invisible ones.",
+  { x: px + 0.3, y: 4.55, w: pw - 0.6, h: 1.65, isTextBox: true, margin: 0, fontFace: BODY, fontSize: 15, color: "D3EFE1", lineSpacing: 22 });
+
 s.addNotes("This is the slide to slow down on. It converts a fairness metric into a sentence about people, which is what a credit committee actually decides on.");
+
+// ================= 9b. MITIGATION COMPARED =================
+s = pres.addSlide(); s.background = { color: WHITE };
+title(s, "We tried the algorithmic remedies too");
+lede(s, "Claiming the disparity lives in the evidence rather than the algorithm is only worth something if the standard algorithmic fixes were actually run. They were, at an identical approval rate.", 1.45, MUTED, 11.9);
+const mrows = [
+  [{ text: "Strategy", options: { bold: true, color: WHITE, align: "left" } },
+   { text: "AUC", options: { bold: true, color: WHITE } },
+   { text: "Bad rate", options: { bold: true, color: WHITE } },
+   { text: "Disparate impact", options: { bold: true, color: WHITE } },
+   { text: "Reads gender to decide?", options: { bold: true, color: WHITE } }],
+  ["Baseline, bureau only", "0.731", "0.0698", "0.879", { text: "no", options: { color: GREEN } }],
+  [{ text: "Alternative data (this project)", options: { bold: true } },
+   { text: "0.765", options: { bold: true, color: GREEN } },
+   { text: "0.0616", options: { bold: true, color: GREEN } },
+   { text: "0.957", options: { bold: true, color: GREEN } },
+   { text: "no", options: { bold: true, color: GREEN } }],
+  ["CorrelationRemover", "0.727", "0.0708", "0.990", { text: "YES", options: { color: RED, bold: true } }],
+  ["ThresholdOptimizer", "0.677", { text: "0.1200", options: { color: RED } }, "1.000", { text: "YES", options: { color: RED, bold: true } }],
+  ["ExponentiatedGradient", { text: "degenerate", options: { color: RED, italic: true } }, { text: "0.1191", options: { color: RED } }, "0.996", { text: "no", options: { color: MUTED } }],
+];
+s.addTable(mrows, { x: M, y: 2.6, w: W, colW: [4.1, 1.5, 1.7, 2.4, 2.5], rowH: 0.42,
+  fontFace: BODY, fontSize: 12.5, color: INK, valign: "middle", align: "center",
+  border: { type: "solid", color: BORDER, pt: 0.5 }, fill: { color: WHITE }, autoPage: false });
+s.addShape(pres.ShapeType.rect, { x: M, y: 2.6, w: W, h: 0.42, fill: { color: INK }, line: { type: "none" } });
+[["Strategy", 4.1, "left"], ["AUC", 1.5, "center"], ["Bad rate", 1.7, "center"],
+ ["Disparate impact", 2.4, "center"], ["Reads gender to decide?", 2.5, "center"]].reduce((x, c) => {
+  s.addText(c[0], { x: c[2] === "left" ? x + 0.15 : x, y: 2.6, w: c[2] === "left" ? c[1] - 0.2 : c[1], h: 0.42, isTextBox: true, margin: 0,
+    align: c[2], valign: "middle", fontFace: BODY, fontSize: 11.5, bold: true, color: WHITE });
+  return x + c[1];
+}, M);
+callout(s, 5.0, "Every algorithmic remedy bought fairness with accuracy or with risk. Widening the evidence was the only one that improved discrimination, risk and fairness together \u2014 and the only one needing the protected attribute at neither training nor decision time.", GREEN_PALE, GREEN, INK, 0.95);
+callout(s, 6.1, "Two failures recorded rather than smoothed over: CorrelationRemover cannot accept a missing bureau score, the very signal that defines a thin-file applicant. ExponentiatedGradient collapsed to approving 99% of everyone across five constraint tightnesses and three constraint types \u2014 at a 12% base rate, approving everyone satisfies parity exactly.", AMBER_PALE, AMBER, INK, 0.95);
+s.addNotes("The 'reads gender to decide' column is the point a fair-lending reviewer will care about. A remedy that applies a different threshold by group is disparate treatment, not a cure for it.");
 
 // ================= 10. EXPLAIN =================
 s = pres.addSlide(); s.background = { color: WHITE };
@@ -346,6 +407,24 @@ cardRow(s, 2.38, 2.92, [
 ], { headSize: 13, bodySize: 11 });
 callout(s, 5.5, "Stated plainly: that guardrail F1 is on 23 cases I wrote myself. It shows the guardrails catch the attacks I anticipated — not that they catch all attacks.", AMBER_PALE, AMBER, INK, 0.8);
 s.addNotes("Volunteer the caveat before anyone asks. A candidate who marks their own homework and says so is more trustworthy than one reporting a perfect score.");
+
+// ================= 14b. LATENCY =================
+s = pres.addSlide(); s.background = { color: INK };
+s.addText("Explainability is not a latency trade", { x: M, y: 0.5, w: W, h: 0.85, isTextBox: true, margin: 0, fontFace: HEAD, fontSize: 34, color: WHITE, valign: "top" });
+s.addText("A decision is made while an applicant waits, so the cost of every guarantee is a product constraint rather than a footnote. Measured per applicant on CPU, p50.", { x: M, y: 1.4, w: 11.6, h: 0.7, isTextBox: true, margin: 0, fontFace: BODY, fontSize: 14, color: INK_TEXT, lineSpacing: 20 });
+[["Score only", "3.18 ms", "C2CDD6"], ["Score + exact SHAP reason codes", "3.52 ms", GREEN_TEXT],
+ ["Retrieve the governing provisions", "2.93 ms", "C2CDD6"], ["Render the full compliant notice", "3.68 ms", "C2CDD6"],
+ ["Search for actionable recourse", "75.92 ms", "E0A758"]].forEach((r, i) => {
+  const y = 2.35 + i * 0.62;
+  s.addShape(pres.ShapeType.roundRect, { x: M, y, w: 11.6, h: 0.52, rectRadius: 0.08, fill: { color: INK_CARD }, line: { type: "none" } });
+  s.addText(r[0], { x: M + 0.3, y, w: 7.6, h: 0.52, isTextBox: true, margin: 0, valign: "middle", fontFace: BODY, fontSize: 14, color: "E4EAEF" });
+  s.addText(r[1], { x: M + 8.2, y, w: 3.1, h: 0.52, isTextBox: true, margin: 0, valign: "middle", align: "right", fontFace: BODY, fontSize: 15, bold: true, color: r[2] });
+});
+s.addShape(pres.ShapeType.roundRect, { x: M, y: 5.6, w: 11.6, h: 1.1, rectRadius: 0.09, fill: { color: "134034" }, line: { type: "none" } });
+s.addText([{ text: "Exact reason codes cost 0.34 ms. ", options: { bold: true, color: GREEN_TEXT } },
+           { text: "A complete, explained, cited decision lands in about 10 ms \u2014 about 86 ms when it also computes recourse. The language model is excluded: it is off the decision path, and its latency belongs to someone else's API.", options: { color: "A9E3C6" } }],
+  { x: M + 0.35, y: 5.78, w: 10.9, h: 0.78, isTextBox: true, margin: 0, fontFace: BODY, fontSize: 13.5, lineSpacing: 19, valign: "middle" });
+s.addNotes("The 0.34 ms number is the one to say out loud. It kills the assumption that a lender trades latency for explainability.");
 
 // ================= 15. ENGINEERING =================
 s = pres.addSlide(); s.background = { color: NEUTRAL };

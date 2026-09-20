@@ -40,3 +40,6 @@ frontend/.vite/
 # --- frontend build output ---
 frontend/dist/
 frontend/node_modules/
+
+# deck generator deps
+scripts/deck/node_modules/
