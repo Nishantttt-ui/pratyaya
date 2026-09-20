@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import time
 from typing import Any, ClassVar
 
@@ -14,6 +15,7 @@ from backend.app.llm.base import (
     LLMRateLimitError,
     LLMResult,
     LLMTimeoutError,
+    LLMUnavailableError,
 )
 
 
@@ -29,12 +31,23 @@ class GeminiProvider(LLMProvider):
     name: ClassVar[str] = "gemini"
     BASE_URL: ClassVar[str] = "https://generativelanguage.googleapis.com/v1beta"
 
-    def __init__(self, api_key: str, model: str, timeout: float = 20.0) -> None:
+    def __init__(
+        self, api_key: str, model: str, timeout: float = 20.0, thinking_budget: int = 0
+    ) -> None:
         if not api_key:
             raise LLMAuthError("GEMINI_API_KEY is not set")
         self._api_key = api_key
         self._model = model
         self._timeout = timeout
+        # Gemini 3 models spend tokens reasoning internally before emitting any
+        # text, and that budget is drawn from maxOutputTokens. This task is not
+        # a reasoning task: the decision, the reason codes and the citations are
+        # all settled before the model is called, and its job is to restate them
+        # readably. Thinking would spend tokens and latency on nothing, and at a
+        # small maxOutputTokens it consumes the entire budget and returns empty
+        # text with finishReason MAX_TOKENS. Disabled by default; set a positive
+        # budget if a future prompt genuinely needs deliberation.
+        self._thinking_budget = thinking_budget
 
     async def generate(
         self,
@@ -44,12 +57,40 @@ class GeminiProvider(LLMProvider):
         max_tokens: int = 800,
         temperature: float = 0.0,
     ) -> LLMResult:
+        """Generate, retrying briefly on a transient provider failure.
+
+        Free inference tiers return 503 under load with some regularity. Two
+        short retries turn most of those into a successful call; anything that
+        survives them reaches the caller as an error and the deterministic
+        notice is served.
+        """
+        last: LLMError | None = None
+        for attempt in range(3):
+            try:
+                return await self._generate_once(
+                    system=system, user=user, max_tokens=max_tokens, temperature=temperature
+                )
+            except (LLMUnavailableError, LLMRateLimitError) as exc:
+                last = exc
+                if attempt < 2:
+                    await asyncio.sleep(0.8 * (2**attempt))
+        raise last  # type: ignore[misc]
+
+    async def _generate_once(
+        self,
+        *,
+        system: str,
+        user: str,
+        max_tokens: int,
+        temperature: float,
+    ) -> LLMResult:
         payload: dict[str, Any] = {
             "systemInstruction": {"parts": [{"text": system}]},
             "contents": [{"role": "user", "parts": [{"text": user}]}],
             "generationConfig": {
                 "temperature": temperature,
                 "maxOutputTokens": max_tokens,
+                "thinkingConfig": {"thinkingBudget": self._thinking_budget},
             },
         }
         url = f"{self.BASE_URL}/models/{self._model}:generateContent"
@@ -78,6 +119,10 @@ class GeminiProvider(LLMProvider):
             raise LLMAuthError("Gemini rejected the API key")
         if response.status_code == 429:
             raise LLMRateLimitError("Gemini rate limit reached")
+        if response.status_code in (500, 502, 503, 504):
+            raise LLMUnavailableError(
+                f"Gemini temporarily unavailable (HTTP {response.status_code})"
+            )
         if response.status_code >= 400:
             raise LLMError(f"Gemini returned HTTP {response.status_code}: {response.text[:300]}")
 
@@ -90,15 +135,33 @@ class GeminiProvider(LLMProvider):
 
         parts = candidates[0].get("content", {}).get("parts") or []
         text = "".join(part.get("text", "") for part in parts).strip()
+        finish = candidates[0].get("finishReason")
+
+        if not text:
+            # An empty completion is a provider failure, not an explanation.
+            # Raising here rather than returning "" means the caller falls back
+            # to the deterministic notice, so the applicant never receives a
+            # blank reason for a credit decision.
+            raise LLMError(
+                f"Gemini returned no text (finishReason={finish}). "
+                "The deterministic notice will be served instead."
+            )
         usage = body.get("usageMetadata", {})
+        # Record the version the API actually served, not the identifier we
+        # asked for. Hosted model names are aliases that retire and re-point:
+        # `gemini-2.0-flash` was withdrawn during this project's development and
+        # returned a 404. For a regulated decision the audit trail has to say
+        # which model produced the wording, so the resolved version wins over
+        # the requested one whenever the response reports it.
+        resolved = body.get("modelVersion") or self._model
         return LLMResult(
             text=text,
             provider=self.name,
-            model=self._model,
+            model=resolved,
             latency_ms=latency_ms,
             input_tokens=usage.get("promptTokenCount"),
             output_tokens=usage.get("candidatesTokenCount"),
-            finish_reason=candidates[0].get("finishReason"),
+            finish_reason=finish,
         )
 
     async def health_check(self) -> bool:

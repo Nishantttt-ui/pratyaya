@@ -42,6 +42,16 @@ class LLMTimeoutError(LLMError):
     """The provider did not respond within the configured budget."""
 
 
+class LLMUnavailableError(LLMError):
+    """The provider is temporarily unable to serve, and the call may be retried.
+
+    Distinguished from a plain ``LLMError`` because it is worth retrying: a free
+    inference tier returns 503 under load fairly often, and dropping straight to
+    the deterministic notice on a transient blip would understate what the
+    service can do. A persistent outage still ends in the fallback.
+    """
+
+
 @dataclass(frozen=True)
 class LLMResult:
     """A single completion, plus the metadata an audit trail needs."""
