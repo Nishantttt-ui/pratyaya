@@ -1,0 +1,55 @@
+# Render blueprint for the API.
+#
+# Deliberately the native Python runtime rather than a Dockerfile: this project
+# was developed on a machine without Docker, so a Dockerfile could not have been
+# built or run before shipping, and an untested container is worse than a build
+# command whose every step can be reasoned about.
+services:
+  - type: web
+    name: pratyaya-api
+    runtime: python
+    plan: free
+    region: singapore          # same region as the Neon database
+    healthCheckPath: /health
+
+    buildCommand: |
+      pip install --upgrade pip
+      pip install -e .
+      # Train during the build. The model artifact is git-ignored by design -
+      # it is a build output, not source - so producing it here also verifies
+      # the training pipeline runs end to end on a clean machine.
+      python scripts/train.py
+      # Fetch the embedding model now rather than on the first request, so a
+      # cold start does not also pay for a 67MB download.
+      python -c "from fastembed import TextEmbedding; TextEmbedding(model_name='BAAI/bge-small-en-v1.5')"
+
+    startCommand: uvicorn backend.app.main:app --host 0.0.0.0 --port $PORT
+
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.12.7"
+      # Keep the embedding model inside the project directory so it survives
+      # between a build and the running instance.
+      - key: FASTEMBED_CACHE_PATH
+        value: /opt/render/project/src/.fastembed
+      - key: APP_ENV
+        value: production
+      - key: LOG_LEVEL
+        value: INFO
+      - key: LLM_PROVIDER
+        value: gemini
+      - key: LLM_MODEL
+        value: gemini-3.1-flash-lite
+      # Set these in the Render dashboard, never in this file.
+      - key: DATABASE_URL
+        sync: false
+      - key: JWT_SECRET
+        generateValue: true      # Render mints a random value
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: CORS_ORIGINS
+        sync: false              # the deployed frontend's origin
+      - key: DEMO_UNDERWRITER_PASSWORD
+        sync: false
+      - key: DEMO_APPLICANT_PASSWORD
+        sync: false
