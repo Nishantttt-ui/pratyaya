@@ -151,9 +151,9 @@ s.addText("Explainable, fairness-audited credit assessment for thin-file and new
 s.addShape(pres.ShapeType.roundRect, { x: M, y: 5.05, w: W, h: 0.86, rectRadius: 0.1, fill: { color: "1C2F3D" }, line: { type: "none" } });
 s.addText([
   { text: "LIVE  ", options: { bold: true, color: GREEN_TEXT, fontSize: 11, charSpacing: 1.5 } },
-  { text: "pratyaya-beta.vercel.app", options: { bold: true, color: WHITE, fontSize: 15 } },
+  { text: "pratyaya-beta.vercel.app", options: { bold: true, color: WHITE, fontSize: 15, underline: { style: "sng" }, hyperlink: { url: "https://pratyaya-beta.vercel.app", tooltip: "Open the running application" } } },
   { text: "        CODE  ", options: { bold: true, color: GREEN_TEXT, fontSize: 11, charSpacing: 1.5 } },
-  { text: "github.com/Nishantttt-ui/pratyaya", options: { bold: true, color: WHITE, fontSize: 15 } },
+  { text: "github.com/Nishantttt-ui/pratyaya", options: { bold: true, color: WHITE, fontSize: 15, underline: { style: "sng" }, hyperlink: { url: "https://github.com/Nishantttt-ui/pratyaya", tooltip: "Open the source repository" } } },
 ], { x: M + 0.3, y: 5.05, w: W - 0.6, h: 0.86, isTextBox: true, margin: 0, valign: "middle", fontFace: BODY });
 s.addShape(pres.ShapeType.line, { x: M, y: 6.12, w: 4.2, h: 0, line: { color: "3A4B57", width: 1 } });
 s.addText([
@@ -269,7 +269,9 @@ bandLabel(s, LX, rowY(6) + 0.22, LW, "DATA", MUTED);
 // flow arrows down the left gutter of the content column
 for (let i = 0; i < 6; i++) arrow(s, CX - 0.14, rowY(i) + RH, CX - 0.14, rowY(i + 1), "A8B4BC", 1.25);
 
-s.addText("Every layer shown is running: /health reports model ready, 37 provisions, vector_store pgvector, llm_provider gemini",
+s.addText([{ text: "Every layer shown is running: ", options: {} },
+  { text: "pratyaya-api.onrender.com/health", options: { hyperlink: { url: "https://pratyaya-api.onrender.com/health", tooltip: "Live component readiness" }, underline: { style: "sng" } } },
+  { text: " reports model ready, 37 provisions, vector_store pgvector, llm_provider gemini", options: {} }],
   { x: M, y: 7.02, w: W, h: 0.3, isTextBox: true, margin: 0, fontFace: BODY, fontSize: 10.5, italic: true, color: "8A949C" });
 s.addNotes("Walk down the bands. The point to land: everything green completes before anything amber is called, so the amber row can fail entirely and the applicant still receives a correct, compliant, cited decision.");
 
@@ -754,12 +756,14 @@ lede(s, "Not a prototype on a laptop. Every figure quoted here regenerates from 
 
 card(s, M, 1.68, W, 1.52, GREEN_PALE, GREEN);
 s.addText("THE RUNNING SYSTEM", { x: M + 0.35, y: 1.86, w: W - 0.7, h: 0.28, isTextBox: true, margin: 0, fontFace: BODY, fontSize: 11, bold: true, color: GREEN, charSpacing: 1.8 });
-s.addText("pratyaya-beta.vercel.app", { x: M + 0.35, y: 2.14, w: W - 0.7, h: 0.5, isTextBox: true, margin: 0, fontFace: HEAD, fontSize: 30, bold: true, color: INK });
+s.addText([{ text: "pratyaya-beta.vercel.app", options: { hyperlink: { url: "https://pratyaya-beta.vercel.app", tooltip: "Open the running application" }, color: INK, bold: true, fontSize: 30, fontFace: HEAD, underline: { style: "sng" } } }],
+  { x: M + 0.35, y: 2.14, w: W - 0.7, h: 0.5, isTextBox: true, margin: 0 });
 s.addText("Sign in as  underwriter / demo-underwriter-pw  for the full decision, or  applicant / demo-applicant-pw  for the view a borrower receives.", { x: M + 0.35, y: 2.66, w: W - 0.7, h: 0.4, isTextBox: true, margin: 0, fontFace: BODY, fontSize: 12.5, color: "2F4A40" });
 
 card(s, M, 3.36, W, 1.52, INK, null);
 s.addText("THE CODE", { x: M + 0.35, y: 3.54, w: W - 0.7, h: 0.28, isTextBox: true, margin: 0, fontFace: BODY, fontSize: 11, bold: true, color: GREEN_TEXT, charSpacing: 1.8 });
-s.addText("github.com/Nishantttt-ui/pratyaya", { x: M + 0.35, y: 3.82, w: W - 0.7, h: 0.5, isTextBox: true, margin: 0, fontFace: HEAD, fontSize: 30, bold: true, color: WHITE });
+s.addText([{ text: "github.com/Nishantttt-ui/pratyaya", options: { hyperlink: { url: "https://github.com/Nishantttt-ui/pratyaya", tooltip: "Open the source repository" }, color: WHITE, bold: true, fontSize: 30, fontFace: HEAD, underline: { style: "sng" } } }],
+  { x: M + 0.35, y: 3.82, w: W - 0.7, h: 0.5, isTextBox: true, margin: 0 });
 s.addText("Public. 34 commits, CI green on every push, 136 tests, README with setup for the API and the interface, and a model card.", { x: M + 0.35, y: 4.34, w: W - 0.7, h: 0.4, isTextBox: true, margin: 0, fontFace: BODY, fontSize: 12.5, color: INK_TEXT });
 
 [["136", "tests passing", "guarding the invariants that were expensive to get right"],
@@ -800,9 +804,9 @@ s.addText("Five things I would do with a real portfolio", { x: M, y: 1.0, w: 11.
 s.addShape(pres.ShapeType.roundRect, { x: M, y: 6.18, w: W, h: 0.72, rectRadius: 0.1, fill: { color: "1C2F3D" }, line: { type: "none" } });
 s.addText([
   { text: "LIVE  ", options: { bold: true, color: GREEN_TEXT, fontSize: 11, charSpacing: 1.5 } },
-  { text: "pratyaya-beta.vercel.app", options: { bold: true, color: WHITE, fontSize: 14.5 } },
+  { text: "pratyaya-beta.vercel.app", options: { bold: true, color: WHITE, fontSize: 14.5, underline: { style: "sng" }, hyperlink: { url: "https://pratyaya-beta.vercel.app", tooltip: "Open the running application" } } },
   { text: "        CODE  ", options: { bold: true, color: GREEN_TEXT, fontSize: 11, charSpacing: 1.5 } },
-  { text: "github.com/Nishantttt-ui/pratyaya", options: { bold: true, color: WHITE, fontSize: 14.5 } },
+  { text: "github.com/Nishantttt-ui/pratyaya", options: { bold: true, color: WHITE, fontSize: 14.5, underline: { style: "sng" }, hyperlink: { url: "https://github.com/Nishantttt-ui/pratyaya", tooltip: "Open the source repository" } } },
 ], { x: M + 0.3, y: 6.18, w: W - 0.6, h: 0.72, isTextBox: true, margin: 0, valign: "middle", fontFace: BODY });
 s.addNotes("Close on the three chips. They are the promise of the system in nine words.");
 
