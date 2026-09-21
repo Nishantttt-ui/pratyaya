@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { assess, currentRole, fetchHealth, fetchSample, signOut } from "./api";
 import type { Applicant, Assessment } from "./types";
 import { ApplicantList } from "./components/ApplicantList";
@@ -14,6 +14,7 @@ export default function App() {
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [health, setHealth] = useState<Record<string, unknown> | null>(null);
+  const resultRef = useRef<HTMLDivElement>(null);
 
   async function loadSample(newToCreditOnly: boolean) {
     setError(null);
@@ -38,6 +39,14 @@ export default function App() {
     setError(null);
     try {
       setResult(await assess(applicants[index]));
+      // Below 900px the two columns stack, so the decision lands under the
+      // applicant list and off-screen. Bring it into view, otherwise a click
+      // looks like it did nothing.
+      if (window.matchMedia("(max-width: 900px)").matches) {
+        requestAnimationFrame(() =>
+          resultRef.current?.scrollIntoView({ behavior: "smooth", block: "start" })
+        );
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Assessment failed");
       setResult(null);
@@ -81,13 +90,20 @@ export default function App() {
               <span className="spacer" />
               <button className="btn small" onClick={() => loadSample(ntcOnly)}>Shuffle</button>
             </div>
-            <ApplicantList applicants={applicants} selected={selected} onSelect={runAssessment} />
+            <div className="applicant-list">
+              <ApplicantList applicants={applicants} selected={selected} onSelect={runAssessment} />
+            </div>
           </div>
         </div>
 
-        <div>
+        <div ref={resultRef}>
           {error && <div className="error" style={{ marginBottom: 16 }}>{error}</div>}
-          {busy && <div className="card muted">Assessing…</div>}
+          {busy && (
+            <div className="card muted">
+              Assessing… scoring, explaining, retrieving the governing provisions,
+              and writing the notice.
+            </div>
+          )}
           {!busy && !result && !error && (
             <div className="card muted">
               Select an applicant to see their decision, the reasons behind it,

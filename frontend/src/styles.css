@@ -89,7 +89,12 @@ header.masthead {
 .card h3 { font-size: 14px; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); margin-bottom: 12px; }
 
 .layout { display: grid; grid-template-columns: 340px 1fr; gap: 18px; align-items: start; }
-@media (max-width: 900px) { .layout { grid-template-columns: 1fr; } }
+@media (max-width: 900px) {
+  .layout { grid-template-columns: 1fr; }
+  /* Stacked, the applicant list would otherwise push the decision far below
+     the fold. Cap it so the result stays within a short scroll. */
+  .applicant-list { max-height: 44vh; overflow-y: auto; }
+}
 
 /* --- applicant list --- */
 .applicant {
