@@ -27,7 +27,11 @@ import pandas as pd
 
 from backend.app.llm.base import LLMError, LLMProvider
 from backend.app.llm.guardrails import check_prompt, verify_consistency
-from backend.app.llm.prompts.explanation import SYSTEM_PROMPT, build_user_prompt
+from backend.app.llm.prompts.explanation import (
+    SYSTEM_PROMPT,
+    applicant_supplied_text,
+    build_user_prompt,
+)
 from backend.app.rag.store import VectorStore
 from backend.app.services.notice import render_notice
 from ml.explain.explainer import CreditExplainer, Explanation
@@ -164,7 +168,10 @@ class DecisionService:
 
         user_prompt = build_user_prompt(explanation, recourse=recourse, citations=citations)
 
-        inbound = check_prompt(user_prompt)
+        # Guard only what the applicant can influence. Scanning the whole prompt
+        # would mean scanning our own instructions, which both wastes the check
+        # and produces false positives against our own wording.
+        inbound = check_prompt(applicant_supplied_text(explanation, recourse=recourse))
         if not inbound.passed:
             logger.warning("inbound guardrail blocked prompt: %s", inbound.details)
             return fallback, Provenance(

@@ -64,6 +64,35 @@ why and exactly what to do next.
 """
 
 
+def applicant_supplied_text(
+    explanation: Explanation,
+    *,
+    recourse: list[RecourseOption] | None = None,
+) -> str:
+    """Return only the parts of the prompt an applicant can influence.
+
+    This is what the inbound guardrail should inspect, and scanning the whole
+    assembled prompt instead was a real defect. The system prompt and the task
+    instructions are ours; searching them for injection markers is searching our
+    own writing for our own words. It found some: the instruction "state the
+    approval and what supported it" matched an injection pattern, so every
+    request in production silently fell back to the deterministic notice while
+    reporting a guardrail violation that had not occurred.
+
+    Feature labels and phrases are ours too, drawn from the feature dictionary.
+    What an applicant actually controls is the *values* - a categorical field
+    they chose, a free-text entry - and those are what this returns.
+    """
+    parts: list[str] = []
+    for reason in explanation.adverse_reasons + explanation.favourable_reasons:
+        if reason.value is not None:
+            parts.append(str(reason.value))
+    for option in recourse or []:
+        parts.append(str(option.current_value))
+        parts.append(str(option.target_value))
+    return "\n".join(parts)
+
+
 def build_user_prompt(
     explanation: Explanation,
     *,
