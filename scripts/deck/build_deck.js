@@ -148,14 +148,20 @@ s.addText("Explainable, fairness-audited credit assessment for thin-file and new
   s.addText(t, { x, y: 4.22, w, h: 0.5, isTextBox: true, margin: 0, align: "center", valign: "middle",
     fontFace: BODY, fontSize: 12, bold: true, color: GREEN_TEXT });
 });
-s.addShape(pres.ShapeType.roundRect, { x: M, y: 5.05, w: W, h: 0.86, rectRadius: 0.1, fill: { color: "1C2F3D" }, line: { type: "none" } });
+s.addShape(pres.ShapeType.roundRect, { x: M, y: 4.94, w: W, h: 1.06, rectRadius: 0.1, fill: { color: "1C2F3D" }, line: { type: "none" } });
+s.addText([
+  { text: "SIGN IN  ", options: { bold: true, color: GREEN_TEXT, fontSize: 10, charSpacing: 1.5 } },
+  { text: "underwriter / demo-underwriter-pw", options: { color: "C9D4DD", fontSize: 12 } },
+  { text: "   \u00B7   ", options: { color: "5A6E7C", fontSize: 12 } },
+  { text: "applicant / demo-applicant-pw", options: { color: "C9D4DD", fontSize: 12 } },
+], { x: M + 0.3, y: 5.52, w: W - 0.6, h: 0.36, isTextBox: true, margin: 0, valign: "middle", fontFace: BODY });
 s.addText([
   { text: "LIVE  ", options: { bold: true, color: GREEN_TEXT, fontSize: 11, charSpacing: 1.5 } },
   { text: "pratyaya-beta.vercel.app", options: { bold: true, color: WHITE, fontSize: 15, underline: { style: "sng" }, hyperlink: { url: "https://pratyaya-beta.vercel.app", tooltip: "Open the running application" } } },
   { text: "        CODE  ", options: { bold: true, color: GREEN_TEXT, fontSize: 11, charSpacing: 1.5 } },
   { text: "github.com/Nishantttt-ui/pratyaya", options: { bold: true, color: WHITE, fontSize: 15, underline: { style: "sng" }, hyperlink: { url: "https://github.com/Nishantttt-ui/pratyaya", tooltip: "Open the source repository" } } },
-], { x: M + 0.3, y: 5.05, w: W - 0.6, h: 0.86, isTextBox: true, margin: 0, valign: "middle", fontFace: BODY });
-s.addShape(pres.ShapeType.line, { x: M, y: 6.12, w: 4.2, h: 0, line: { color: "3A4B57", width: 1 } });
+], { x: M + 0.3, y: 5.06, w: W - 0.6, h: 0.44, isTextBox: true, margin: 0, valign: "middle", fontFace: BODY });
+s.addShape(pres.ShapeType.line, { x: M, y: 6.2, w: 4.2, h: 0, line: { color: "3A4B57", width: 1 } });
 s.addText([
   { text: "Pratyaya", options: { italic: true, color: WHITE } },
   { text: " (प्रत्यय) — Sanskrit for trust. The word ", options: {} },
@@ -163,7 +169,7 @@ s.addText([
   { text: " descends from Latin ", options: {} },
   { text: "credere", options: { italic: true, color: WHITE } },
   { text: ", to believe.\nBoth name the same thing: a lender's belief that a borrower will repay.", options: {} },
-], { x: M, y: 6.3, w: 10.5, h: 0.8, isTextBox: true, margin: 0, fontFace: BODY, fontSize: 12.5, color: "93A0AA", lineSpacing: 18 });
+], { x: M, y: 6.36, w: 10.5, h: 0.76, isTextBox: true, margin: 0, fontFace: BODY, fontSize: 12, color: "93A0AA", lineSpacing: 17 });
 s.addNotes("Open here. The name is the argument in miniature: credit is belief, and for a thin-file borrower the problem is not that the belief is misplaced, it is that nobody has ever looked.");
 
 // ================= 2. PROBLEM =================
@@ -813,17 +819,23 @@ s.addText("Five things I would do with a real portfolio", { x: M, y: 1.0, w: 11.
 });
 ["The decision is auditable", "The reasons are exact", "The applicant gets a plan"].forEach((t, i) => {
   const w = 3.2, x = M + i * (w + 0.25);
-  s.addShape(pres.ShapeType.roundRect, { x, y: 5.44, w, h: 0.55, rectRadius: 0.27, fill: { color: "134034" }, line: { type: "none" } });
-  s.addText(t, { x, y: 5.44, w, h: 0.55, isTextBox: true, margin: 0, align: "center", valign: "middle",
+  s.addShape(pres.ShapeType.roundRect, { x, y: 5.38, w, h: 0.55, rectRadius: 0.27, fill: { color: "134034" }, line: { type: "none" } });
+  s.addText(t, { x, y: 5.38, w, h: 0.55, isTextBox: true, margin: 0, align: "center", valign: "middle",
     fontFace: BODY, fontSize: 13, bold: true, color: GREEN_TEXT });
 });
-s.addShape(pres.ShapeType.roundRect, { x: M, y: 6.18, w: W, h: 0.72, rectRadius: 0.1, fill: { color: "1C2F3D" }, line: { type: "none" } });
+s.addShape(pres.ShapeType.roundRect, { x: M, y: 6.12, w: W, h: 1.0, rectRadius: 0.1, fill: { color: "1C2F3D" }, line: { type: "none" } });
+s.addText([
+  { text: "SIGN IN  ", options: { bold: true, color: GREEN_TEXT, fontSize: 10, charSpacing: 1.5 } },
+  { text: "underwriter / demo-underwriter-pw", options: { color: "C9D4DD", fontSize: 11.5 } },
+  { text: "   \u00B7   ", options: { color: "5A6E7C", fontSize: 11.5 } },
+  { text: "applicant / demo-applicant-pw", options: { color: "C9D4DD", fontSize: 11.5 } },
+], { x: M + 0.3, y: 6.64, w: W - 0.6, h: 0.34, isTextBox: true, margin: 0, valign: "middle", fontFace: BODY });
 s.addText([
   { text: "LIVE  ", options: { bold: true, color: GREEN_TEXT, fontSize: 11, charSpacing: 1.5 } },
   { text: "pratyaya-beta.vercel.app", options: { bold: true, color: WHITE, fontSize: 14.5, underline: { style: "sng" }, hyperlink: { url: "https://pratyaya-beta.vercel.app", tooltip: "Open the running application" } } },
   { text: "        CODE  ", options: { bold: true, color: GREEN_TEXT, fontSize: 11, charSpacing: 1.5 } },
   { text: "github.com/Nishantttt-ui/pratyaya", options: { bold: true, color: WHITE, fontSize: 14.5, underline: { style: "sng" }, hyperlink: { url: "https://github.com/Nishantttt-ui/pratyaya", tooltip: "Open the source repository" } } },
-], { x: M + 0.3, y: 6.18, w: W - 0.6, h: 0.72, isTextBox: true, margin: 0, valign: "middle", fontFace: BODY });
+], { x: M + 0.3, y: 6.22, w: W - 0.6, h: 0.42, isTextBox: true, margin: 0, valign: "middle", fontFace: BODY });
 s.addNotes("Close on the three chips. They are the promise of the system in nine words.");
 
 pres.writeFile({ fileName: "/Users/apple/pratyaya/docs/Pratyaya-Synchrony-Hackathon.pptx" })
