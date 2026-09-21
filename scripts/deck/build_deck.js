@@ -737,17 +737,33 @@ s.addNotes("The phrase that matters is by construction. Every one of these is en
 
 // ================= 16. LIMITS =================
 s = pres.addSlide(); s.background = { color: WHITE };
-title(s, "What this is not");
-[["The population is synthetic", "Absolute figures describe this population, not the Indian credit market. The direction of the result follows from a mechanism — bureau absence correlates with gender and region while true risk does not — that is well documented in the real world."],
- ["The regulatory corpus is paraphrased", "Plain-language summaries citing real instruments, labelled as such. Production would ingest the official texts with per-clause identifiers; the retrieval machinery is unchanged by that substitution."],
- ["The cloud layer is designed, not provisioned", "No live deployment, and the Bedrock adapter has never run against a real endpoint. Both are stated in the README rather than implied away."]].forEach((b, i) => {
-  const y = 1.55 + i * 1.62;
-  card(s, M, y, W, 1.35, NEUTRAL, null);
-  badge(s, M + 0.3, y + 0.22, String(i + 1), AMBER, WHITE);
-  s.addText(b[0], { x: M + 0.95, y: y + 0.22, w: W - 1.3, h: 0.38, isTextBox: true, margin: 0, fontFace: BODY, fontSize: 15, bold: true, color: INK });
-  s.addText(b[1], { x: M + 0.95, y: y + 0.62, w: W - 1.3, h: 0.62, isTextBox: true, margin: 0, fontFace: BODY, fontSize: 12, color: MUTED, lineSpacing: 16 });
+title(s, "What we knew, and what we did about it", 0.45, INK, 30);
+lede(s, "Two constraints shaped this build. Both are stated here because a reviewer would find them in ten minutes, and because what was done about each is the more interesting half.", 0.98, MUTED, 11.9, 12.5);
+
+[["The population is generated",
+  "No public dataset joins Account Aggregator-style alternative data to realised loan outcomes for Indian borrowers. That data is personal financial information and is not published, so the alternative was not real data but a foreign dataset relabelled.",
+  "The same pipeline was run over 30,000 real defaults. The accuracy claim replicated: AUC 0.7711 \u2192 0.7829, bad rate down. Our synthetic difficulty sits between two real datasets, and the fairness claim's precondition is stated precisely enough that a lender could test it against their own book in an afternoon."],
+ ["The regulatory corpus is paraphrased",
+  "Every provision is a plain-language summary carrying a citation to the instrument it summarises, labelled as such in the corpus README, the model card and this deck.",
+  "That was the deliberate choice, not a shortcut. Seeding a retrieval corpus with invented quotations from RBI circulars would commit precisely the hallucination this architecture exists to prevent, and would not survive a reader who knows the regulations. Production ingests the official texts; the retrieval, chunking, citation and audit machinery is unchanged."]
+].forEach((b, i) => {
+  const y = 1.72 + i * 2.32;
+  card(s, M, y, W, 2.1, GREEN_PALE, GREEN);
+  badge(s, M + 0.28, y + 0.26, String(i + 1), GREEN, WHITE);
+  s.addText(b[0], { x: M + 0.94, y: y + 0.24, w: W - 1.3, h: 0.36, isTextBox: true, margin: 0,
+    fontFace: BODY, fontSize: 16, bold: true, color: GREEN });
+  s.addText("THE CONSTRAINT", { x: M + 0.94, y: y + 0.66, w: (W - 1.5) / 2, h: 0.24, isTextBox: true,
+    margin: 0, fontFace: BODY, fontSize: 9.5, bold: true, color: MUTED, charSpacing: 1.4 });
+  s.addText(b[1], { x: M + 0.94, y: y + 0.92, w: (W - 1.5) / 2, h: 1.04, isTextBox: true, margin: 0,
+    fontFace: BODY, fontSize: 12, color: "3C4E58", lineSpacing: 15, valign: "top" });
+  const rx = M + 0.94 + (W - 1.5) / 2 + 0.3;
+  s.addText("WHAT WE DID", { x: rx, y: y + 0.66, w: (W - 1.5) / 2 - 0.3, h: 0.24, isTextBox: true,
+    margin: 0, fontFace: BODY, fontSize: 9.5, bold: true, color: GREEN, charSpacing: 1.4 });
+  s.addText(b[2], { x: rx, y: y + 0.92, w: (W - 1.5) / 2 - 0.3, h: 1.04, isTextBox: true, margin: 0,
+    fontFace: BODY, fontSize: 12, color: INK, lineSpacing: 15, valign: "top" });
 });
-s.addNotes("Saying this out loud is a strength. Every limitation here is one a reviewer would find in ten minutes anyway.");
+callout(s, 6.4, "Everything else the brief asked for is running in production: React on Vercel, FastAPI and PostgreSQL with pgvector in Singapore, and a live language model behind guardrails.", GREEN_PALE, GREEN, INK, 0.7);
+s.addNotes("Not an apology. Constraint on the left, what was done about it on the right. Saying it first means you choose the framing; being asked later means they do. If anyone raises deployment or Bedrock, both are answered elsewhere: the system is live, and the provider abstraction was proven by swapping models mid-build.");
 
 // ================= 16b. WHERE TO FIND IT =================
 s = pres.addSlide(); s.background = { color: WHITE };
