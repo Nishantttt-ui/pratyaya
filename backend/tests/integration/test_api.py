@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import os
+
 import pytest
 from fastapi.testclient import TestClient
 
@@ -45,12 +47,17 @@ def _token(client, username, password):
 
 @pytest.fixture(scope="module")
 def underwriter_headers(client):
-    return {"Authorization": f"Bearer {_token(client, 'underwriter', 'test-underwriter-pw')}"}
+    # Read the same environment the application reads, rather than repeating a
+    # literal here. conftest sets a default when none is present, so this works
+    # locally and under CI, where the workflow supplies its own values.
+    password = os.environ["DEMO_UNDERWRITER_PASSWORD"]
+    return {"Authorization": f"Bearer {_token(client, 'underwriter', password)}"}
 
 
 @pytest.fixture(scope="module")
 def applicant_headers(client):
-    return {"Authorization": f"Bearer {_token(client, 'applicant', 'test-applicant-pw')}"}
+    password = os.environ["DEMO_APPLICANT_PASSWORD"]
+    return {"Authorization": f"Bearer {_token(client, 'applicant', password)}"}
 
 
 def test_health_is_public_and_reports_components(client):
