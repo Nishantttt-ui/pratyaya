@@ -1,0 +1,18 @@
+{
+  "narrative": "We are writing to inform you that your loan application has been declined. As you are new to formal credit, we assessed your application based on your financial habits rather than a credit bureau record [CIC-04].\n\nOur assessment identified a few areas that prevented approval. Your monthly instalment amount is currently too high relative to your income of Rs 19,600. Additionally, we noted that your utility bills are often paid late and your mobile recharge pattern is irregular.\n\nTo improve your chances for future applications, you could request a smaller loan amount, such as Rs 43,098, or choose a longer repayment period of approximately 14 months. Both steps would lower your monthly instalment. Furthermore, maintaining a consistent schedule for your mobile recharges will help build a stronger financial profile.\n\nIn accordance with the RBI Fair Practices Code, we are providing these reasons for your application's decline in writing [FPC-01].",
+  "provenance": {
+    "narrative_source": "llm",
+    "provider": "gemini",
+    "model": "gemini-3.1-flash-lite",
+    "latency_ms": 3722,
+    "guardrail_passed": true,
+    "guardrail_violations": [],
+    "fallback_reason": null
+  },
+  "pd": 0.21739130434782608,
+  "citations": [
+    "FPC-01",
+    "DL-04",
+    "CIC-04"
+  ]
+}

@@ -203,6 +203,12 @@ gender changes the bar they must clear, which is disparate treatment rather than
 a remedy for it. Two applicants with identical financial records receive an
 identical decision from this model.
 
+**The language model runs live and is measured.** Ten of ten consecutive
+requests narrated successfully on `gemini-3.1-flash-lite` at 2.8 s mean. On an
+earlier model choice, five of ten fell back to the deterministic notice under
+rate limiting, and all five still returned the correct decision, reasons,
+recourse and citations.
+
 **The language model cannot change a decision.** A deterministic model decides;
 the LLM only narrates, and its output is discarded if it contradicts the
 decision. A hallucination can produce a badly worded sentence, never a wrong

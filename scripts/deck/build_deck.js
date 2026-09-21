@@ -377,6 +377,35 @@ s.addText([{ text: "[FPC-01] ", options: { bold: true, color: GREEN } }, { text:
 footnote(s, "Provisions are labelled paraphrases citing the real instrument — seeding a corpus with invented quotations would be the hallucination this design prevents");
 s.addNotes("CIC-04 is the one to point at: the regulation itself says absence of history is not adverse history. The architecture is enforcing something the law already asserts.");
 
+// ================= 12b. WHAT THE APPLICANT READS =================
+s = pres.addSlide(); s.background = { color: WHITE };
+title(s, "What the applicant actually reads");
+lede(s, "Produced live by Gemini from the finished decision. Every figure in it comes from the facts block; the model added no numbers of its own.", 1.42, MUTED, 11.7);
+card(s, M, 2.15, 7.9, 4.3, NEUTRAL, null);
+s.addText([
+ { text: "We are writing to inform you that your loan application has been declined. As you are new to formal credit, we assessed your application based on your financial habits rather than a credit bureau record ", options: { color: INK } },
+ { text: "[CIC-04]", options: { color: GREEN, bold: true } },
+ { text: ".\n\nOur assessment identified a few areas that prevented approval. Your monthly instalment amount is currently too high relative to your income of ", options: { color: INK } },
+ { text: "Rs 19,600", options: { bold: true } },
+ { text: ". Additionally, we noted that your utility bills are often paid late and your mobile recharge pattern is irregular.\n\nTo improve your chances for future applications, you could request a smaller loan amount, such as ", options: { color: INK } },
+ { text: "Rs 43,098", options: { bold: true } },
+ { text: ", or choose a longer repayment period of approximately ", options: { color: INK } },
+ { text: "14 months", options: { bold: true } },
+ { text: ". Both steps would lower your monthly instalment.\n\nIn accordance with the RBI Fair Practices Code, we are providing these reasons for your application's decline in writing ", options: { color: INK } },
+ { text: "[FPC-01]", options: { color: GREEN, bold: true } },
+ { text: ".", options: { color: INK } },
+], { x: M + 0.35, y: 2.42, w: 7.2, h: 3.8, isTextBox: true, margin: 0, fontFace: BODY, fontSize: 13, lineSpacing: 19, valign: "top" });
+const nx = M + 8.25, nw = W - 8.25;
+[["Narrated by", "gemini-3.1-flash-lite"], ["End to end", "3.7 seconds"], ["Guardrails", "passed"],
+ ["Citations", "CIC-04 · FPC-01 · DL-04"], ["Invented facts", "none"]].forEach((r, i) => {
+  const y = 2.15 + i * 0.88;
+  card(s, nx, y, nw, 0.76, WHITE, BORDER);
+  s.addText(r[0], { x: nx + 0.22, y: y + 0.1, w: nw - 0.44, h: 0.26, isTextBox: true, margin: 0, fontFace: BODY, fontSize: 10.5, color: MUTED, charSpacing: 1.2 });
+  s.addText(r[1], { x: nx + 0.22, y: y + 0.36, w: nw - 0.44, h: 0.32, isTextBox: true, margin: 0, fontFace: BODY, fontSize: 13.5, bold: true, color: i === 4 ? GREEN : INK });
+});
+footnote(s, "Rs 43,098 and 14 months are the recourse targets the model computed, re-scored against the real decision boundary \u2014 not figures the language model chose");
+s.addNotes("Point at the two bracketed citations and the two rupee figures. The citations come from retrieval; the figures come from counterfactual search. The language model supplied only the sentences around them.");
+
 // ================= 13. GUARDRAILS =================
 s = pres.addSlide(); s.background = { color: INK };
 s.addText("What the guardrails actually stop", { x: M, y: 0.5, w: W, h: 0.85, isTextBox: true, margin: 0, fontFace: HEAD, fontSize: 34, color: WHITE, valign: "top" });
@@ -394,6 +423,25 @@ s.addText("The stronger guarantee is structural", { x: M + 0.35, y: 4.65, w: W -
 s.addText("The prompt is assembled only from the decision object, never from the applicant record. There is no code path by which a name, PAN or Aadhaar could reach a third-party model — and the API refuses a request carrying one with a 422. Data minimisation by construction, not by promise.",
   { x: M + 0.35, y: 5.02, w: W - 0.7, h: 0.85, isTextBox: true, margin: 0, fontFace: BODY, fontSize: 13, color: "A9E3C6", lineSpacing: 19 });
 s.addNotes("Detection is defence in depth. The real guarantee is that the sensitive data is never in the room.");
+
+// ================= 13b. GUARDRAILS DEMONSTRATED =================
+s = pres.addSlide(); s.background = { color: WHITE };
+title(s, "Guardrails, demonstrated against the live model");
+lede(s, "Five scenarios run against the real service. In every blocked case the applicant still received the decision, the reasons, the recourse and the citations \u2014 the guardrail removes the wording, never the substance.", 1.42, MUTED, 11.8);
+[["1", "Normal decline", "Gemini narrates. Nothing blocked.", "allowed", GREEN, GREEN_PALE],
+ ["2", "Injection in a field that is not a top reason", "The prompt carries only the top reason codes, so the poisoned value never reaches the model.", "never reached it", GREEN, GREEN_PALE],
+ ["3", "Injection in a field that IS a top reason", "The value reaches the prompt and the inbound guardrail rejects it.", "blocked", RED, "F7E5E4"],
+ ["4", "Model contradicts the decision", "A provider congratulates an applicant the model declined.", "blocked", RED, "F7E5E4"],
+ ["5", "Model leaks a phone number", "A provider puts an identifier into applicant-facing text.", "blocked", RED, "F7E5E4"]].forEach((r, i) => {
+  const y = 2.42 + i * 0.83;
+  card(s, M, y, W, 0.72, r[5], null);
+  badge(s, M + 0.22, y + 0.15, r[0], r[4], WHITE);
+  s.addText(r[1], { x: M + 0.85, y: y + 0.08, w: 5.0, h: 0.3, isTextBox: true, margin: 0, fontFace: BODY, fontSize: 13, bold: true, color: INK });
+  s.addText(r[2], { x: M + 0.85, y: y + 0.37, w: 7.9, h: 0.3, isTextBox: true, margin: 0, fontFace: BODY, fontSize: 11.5, color: MUTED });
+  s.addText(r[3], { x: M + 9.0, y: y + 0.08, w: 3.0, h: 0.56, isTextBox: true, margin: 0, align: "right", valign: "middle", fontFace: BODY, fontSize: 13.5, bold: true, color: r[4] });
+});
+callout(s, 6.62, "Writing this demonstration corrected a claim we had wrong: scenario 2 was first recorded as a guardrail failure. It is not \u2014 nothing needed blocking, because nothing got through.", AMBER_PALE, AMBER, INK, 0.66);
+s.addNotes("Scenario 2 is the interesting one. Data minimisation is the primary defence and the guardrail is the backstop. Say that we found this by testing rather than by assuming.");
 
 // ================= 14. EVALUATION =================
 s = pres.addSlide(); s.background = { color: WHITE };
@@ -420,10 +468,14 @@ s.addText("A decision is made while an applicant waits, so the cost of every gua
   s.addText(r[0], { x: M + 0.3, y, w: 7.6, h: 0.52, isTextBox: true, margin: 0, valign: "middle", fontFace: BODY, fontSize: 14, color: "E4EAEF" });
   s.addText(r[1], { x: M + 8.2, y, w: 3.1, h: 0.52, isTextBox: true, margin: 0, valign: "middle", align: "right", fontFace: BODY, fontSize: 15, bold: true, color: r[2] });
 });
-s.addShape(pres.ShapeType.roundRect, { x: M, y: 5.6, w: 11.6, h: 1.1, rectRadius: 0.09, fill: { color: "134034" }, line: { type: "none" } });
+s.addShape(pres.ShapeType.roundRect, { x: M, y: 5.48, w: 5.65, h: 1.3, rectRadius: 0.09, fill: { color: "134034" }, line: { type: "none" } });
 s.addText([{ text: "Exact reason codes cost 0.34 ms. ", options: { bold: true, color: GREEN_TEXT } },
-           { text: "A complete, explained, cited decision lands in about 10 ms \u2014 about 86 ms when it also computes recourse. The language model is excluded: it is off the decision path, and its latency belongs to someone else's API.", options: { color: "A9E3C6" } }],
-  { x: M + 0.35, y: 5.78, w: 10.9, h: 0.78, isTextBox: true, margin: 0, fontFace: BODY, fontSize: 13.5, lineSpacing: 19, valign: "middle" });
+           { text: "A complete, explained, cited decision lands in about 10 ms \u2014 about 86 ms when it also computes recourse.", options: { color: "A9E3C6" } }],
+  { x: M + 0.3, y: 5.66, w: 5.05, h: 0.95, isTextBox: true, margin: 0, fontFace: BODY, fontSize: 13, lineSpacing: 18, valign: "top" });
+s.addShape(pres.ShapeType.roundRect, { x: M + 5.95, y: 5.48, w: 5.65, h: 1.3, rectRadius: 0.09, fill: { color: INK_CARD }, line: { type: "none" } });
+s.addText([{ text: "The language model is excluded. ", options: { bold: true, color: "E0A758" } },
+           { text: "It is off the decision path and its latency belongs to a third-party API. Measured separately: 2.8 s mean, 10 of 10 live calls.", options: { color: INK_TEXT } }],
+  { x: M + 6.25, y: 5.66, w: 5.05, h: 0.95, isTextBox: true, margin: 0, fontFace: BODY, fontSize: 13, lineSpacing: 18, valign: "top" });
 s.addNotes("The 0.34 ms number is the one to say out loud. It kills the assumption that a lender trades latency for explainability.");
 
 // ================= 15. ENGINEERING =================

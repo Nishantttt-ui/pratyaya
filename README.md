@@ -138,6 +138,33 @@ constraint tightnesses and all three constraint types tried: at a 12% base rate,
 approving everyone satisfies parity exactly while being only 12% wrong.
 `python scripts/compare_mitigations.py`
 
+## Does the language model actually hold up?
+
+It runs live against Gemini. Measured over ten consecutive calls through the
+HTTP API on `gemini-3.1-flash-lite`: **ten narrated successfully, no fallbacks,
+2.8 s mean**.
+
+Getting there surfaced three things mocks would never have shown:
+
+1. **Pinned models retire.** `gemini-2.0-flash` returns 404; several 2.5-series
+   identifiers are closed to new accounts. The provider abstraction made that a
+   one-line change, which is the argument for having it. The audit trail now
+   records the version the API *resolved*, not the one we asked for.
+2. **Gemini 3 spends tokens thinking before answering**, drawn from the same
+   output budget, and at a small budget returns empty text with
+   `finishReason: MAX_TOKENS`. Thinking is disabled — the decision and its
+   reasons are settled before the model is called — and an empty completion now
+   raises so the applicant gets the deterministic notice, never a blank reason.
+3. **Model choice is an empirical question.** The first model that worked fell
+   back half the time under load at 8 s mean. Benchmarking what the key could
+   actually reach found one that is 3× faster and did not fail once.
+
+**The most useful measurement was the failure.** On the first model, 5 of 10
+requests lost their generated wording to rate limits and 503s — and every one of
+those still returned the correct decision, reasons, recourse and citations. That
+is the architecture doing exactly what it was built to do, observed rather than
+asserted. `python scripts/demo_guardrails.py`
+
 ## What it costs to explain a decision
 
 Per applicant, on CPU, p50:
