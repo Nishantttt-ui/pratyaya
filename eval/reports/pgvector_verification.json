@@ -1,0 +1,13 @@
+{
+  "provisions_indexed": 37,
+  "embedding_dims": 384,
+  "indexes": [
+    "policy_chunk_pkey",
+    "policy_chunk_embedding_idx"
+  ],
+  "golden_queries": 28,
+  "identical_to_in_memory": 28,
+  "disagreements": [],
+  "pgvector_p50_ms": 186.13,
+  "in_memory_p50_ms": 9.98
+}
