@@ -1,8 +1,26 @@
 # Pratyaya — Explainable Credit Risk for Thin-File Borrowers
 
 [![CI](https://github.com/Nishantttt-ui/pratyaya/actions/workflows/ci.yml/badge.svg)](https://github.com/Nishantttt-ui/pratyaya/actions/workflows/ci.yml)
+[![Live demo](https://img.shields.io/badge/live%20demo-pratyaya--beta.vercel.app-0e6b4f)](https://pratyaya-beta.vercel.app)
 [![Python 3.12](https://img.shields.io/badge/python-3.12-blue.svg)](https://www.python.org/downloads/)
-[![Tests](https://img.shields.io/badge/tests-133-brightgreen.svg)](backend/tests)
+[![Tests](https://img.shields.io/badge/tests-136%20passing-brightgreen.svg)](backend/tests)
+
+### ▶ Try it
+
+| | |
+|---|---|
+| **Live application** | **https://pratyaya-beta.vercel.app** |
+| **API** | https://pratyaya-api.onrender.com · [`/health`](https://pratyaya-api.onrender.com/health) · [`/docs`](https://pratyaya-api.onrender.com/docs) |
+| **Sign in** | `underwriter` / `demo-underwriter-pw` — sees the full decision |
+| | `applicant` / `demo-applicant-pw` — sees what a borrower receives |
+
+Sign in as the underwriter, tick **new-to-credit only**, and open a declined
+applicant. Then view the same person as the applicant: same decision, same
+reasons, same recourse — but the probability, the threshold, the signed
+contributions and the provenance are absent from the response entirely.
+
+Running on React (Vercel) → FastAPI (Render, Singapore) → PostgreSQL with
+pgvector (Neon, Singapore) → Gemini for the explanation layer.
 
 > *Pratyaya* (प्रत्यय), Sanskrit for trust or conviction. The English word *credit*
 > descends from the Latin *credere* — to believe. Both name the same thing: a
