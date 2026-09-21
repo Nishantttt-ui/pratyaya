@@ -1,5 +1,9 @@
 # Pratyaya — Explainable Credit Risk for Thin-File Borrowers
 
+[![CI](https://github.com/Nishantttt-ui/pratyaya/actions/workflows/ci.yml/badge.svg)](https://github.com/Nishantttt-ui/pratyaya/actions/workflows/ci.yml)
+[![Python 3.12](https://img.shields.io/badge/python-3.12-blue.svg)](https://www.python.org/downloads/)
+[![Tests](https://img.shields.io/badge/tests-133-brightgreen.svg)](backend/tests)
+
 > *Pratyaya* (प्रत्यय), Sanskrit for trust or conviction. The English word *credit*
 > descends from the Latin *credere* — to believe. Both name the same thing: a
 > lender's belief that a borrower will repay. For 
