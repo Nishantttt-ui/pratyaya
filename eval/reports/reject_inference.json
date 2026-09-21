@@ -1,0 +1,59 @@
+{
+  "prior_policy": {
+    "approval_rate": 0.6,
+    "observed_bad_rate": 0.0576984126984127,
+    "true_bad_rate": 0.12,
+    "n_accepted": 12600,
+    "n_rejected": 8400
+  },
+  "results": {
+    "oracle (sees rejects' outcomes)": {
+      "roc_auc": 0.7840055649083427,
+      "ks": 0.4228535353535353,
+      "bad_rate_among_approved": 0.05952380952380952,
+      "qualified_approval_gap": 0.04780844404521234
+    },
+    "naive (accepted book only)": {
+      "roc_auc": 0.7623124766180321,
+      "ks": 0.39461279461279464,
+      "bad_rate_among_approved": 0.06412698412698413,
+      "qualified_approval_gap": 0.028529921619536713
+    },
+    "corrected (fuzzy augmentation, x2.0)": {
+      "roc_auc": 0.7781481481481481,
+      "ks": 0.4198653198653199,
+      "bad_rate_among_approved": 0.06015873015873016,
+      "qualified_approval_gap": 0.05624596990948494
+    }
+  },
+  "multiplier_sweep": {
+    "1.0": {
+      "roc_auc": 0.7629744785821175,
+      "ks": 0.39797979797979793,
+      "bad_rate_among_approved": 0.06476190476190476,
+      "qualified_approval_gap": 0.03541534616660702
+    },
+    "1.5": {
+      "roc_auc": 0.7720759095585484,
+      "ks": 0.40408249158249154,
+      "bad_rate_among_approved": 0.062063492063492064,
+      "qualified_approval_gap": 0.04534285010091599
+    },
+    "2.0": {
+      "roc_auc": 0.7781481481481481,
+      "ks": 0.4198653198653199,
+      "bad_rate_among_approved": 0.06015873015873016,
+      "qualified_approval_gap": 0.05624596990948494
+    },
+    "3.0": {
+      "roc_auc": 0.7770681350542462,
+      "ks": 0.41578282828282825,
+      "bad_rate_among_approved": 0.06111111111111111,
+      "qualified_approval_gap": 0.06217648633135053
+    }
+  },
+  "censoring_cost_auc": 0.02169308829031058,
+  "recovered_auc": 0.015835671530116002,
+  "share_of_gap_closed": 0.729986957974497,
+  "best_multiplier": 2.0
+}
