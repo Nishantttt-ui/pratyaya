@@ -8,6 +8,6 @@
   "golden_queries": 28,
   "identical_to_in_memory": 28,
   "disagreements": [],
-  "pgvector_p50_ms": 186.13,
-  "in_memory_p50_ms": 9.98
+  "pgvector_p50_ms": 188.23,
+  "in_memory_p50_ms": 11.54
 }

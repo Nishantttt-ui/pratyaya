@@ -56,9 +56,13 @@ def main() -> None:
         dim = conn.execute(
             text("select vector_dims(embedding) from policy_chunk limit 1")
         ).scalar()
-        idx = conn.execute(
-            text("select indexname from pg_indexes where tablename='policy_chunk'")
-        ).scalars().all()
+        idx = (
+            conn.execute(
+                text("select indexname from pg_indexes where tablename='policy_chunk'")
+            )
+            .scalars()
+            .all()
+        )
     print(f"rows in table: {rows} | embedding dims: {dim}")
     print(f"indexes: {', '.join(idx)}")
 
@@ -66,7 +70,8 @@ def main() -> None:
     memory = InMemoryVectorStore()
     memory.index(corpus)
 
-    cases = json.loads((ROOT / "eval" / "goldensets" / "retrieval_golden.json").read_text())["cases"]
+    golden = ROOT / "eval" / "goldensets" / "retrieval_golden.json"
+    cases = json.loads(golden.read_text())["cases"]
     agree = 0
     disagreements = []
     pg_times, mem_times = [], []
@@ -87,7 +92,7 @@ def main() -> None:
             disagreements.append({"query": query, "pgvector": pg_hits, "in_memory": mem_hits})
 
     n = len(cases)
-    print(f"\nAGREEMENT WITH THE IN-MEMORY PATH")
+    print("\nAGREEMENT WITH THE IN-MEMORY PATH")
     print(f"  identical top-3, same order : {agree}/{n}")
     for d in disagreements:
         print(f"    '{d['query'][:48]}' pg={d['pgvector']} mem={d['in_memory']}")
@@ -95,8 +100,10 @@ def main() -> None:
     pg_times.sort()
     mem_times.sort()
     print("\nLATENCY PER QUERY (includes embedding the query locally)")
-    print(f"  pgvector  p50 {pg_times[len(pg_times)//2]:6.1f} ms   p95 {pg_times[int(len(pg_times)*0.95)]:6.1f} ms")
-    print(f"  in-memory p50 {mem_times[len(mem_times)//2]:6.1f} ms   p95 {mem_times[int(len(mem_times)*0.95)]:6.1f} ms")
+    pg50, pg95 = pg_times[len(pg_times) // 2], pg_times[int(len(pg_times) * 0.95)]
+    m50, m95 = mem_times[len(mem_times) // 2], mem_times[int(len(mem_times) * 0.95)]
+    print(f"  pgvector  p50 {pg50:6.1f} ms   p95 {pg95:6.1f} ms")
+    print(f"  in-memory p50 {m50:6.1f} ms   p95 {m95:6.1f} ms")
     print("\n  The gap is the network round trip to the database region, not the search.")
 
     report = {
@@ -106,8 +113,8 @@ def main() -> None:
         "golden_queries": n,
         "identical_to_in_memory": agree,
         "disagreements": disagreements,
-        "pgvector_p50_ms": round(pg_times[len(pg_times) // 2], 2),
-        "in_memory_p50_ms": round(mem_times[len(mem_times) // 2], 2),
+        "pgvector_p50_ms": round(pg50, 2),
+        "in_memory_p50_ms": round(m50, 2),
     }
     (ROOT / "eval" / "reports" / "pgvector_verification.json").write_text(
         json.dumps(report, indent=2)

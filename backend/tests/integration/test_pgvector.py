@@ -72,7 +72,9 @@ def test_every_provision_is_indexed(pg_store, corpus):
 
     with pg_store._engine.connect() as conn:  # noqa: SLF001
         count = conn.execute(text("select count(*) from policy_chunk")).scalar()
-        dims = conn.execute(text("select vector_dims(embedding) from policy_chunk limit 1")).scalar()
+        dims = conn.execute(
+            text("select vector_dims(embedding) from policy_chunk limit 1")
+        ).scalar()
     assert count == len(corpus)
     assert dims == 384
 
