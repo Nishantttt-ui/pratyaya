@@ -434,6 +434,45 @@ node scripts/deck/build_deck.js              # rebuild the deck itself
 Every number quoted in this README and in the deck is produced by one of these
 and written to `eval/reports/`, so neither can drift from the model.
 
+## Deployment
+
+| Piece | Where | Why there |
+|---|---|---|
+| Interface | Vercel | Static build on a CDN; nothing to keep running |
+| API | Render, **Singapore** | Same region as the database, so retrieval is not an ocean crossing |
+| Database | Neon, **Singapore** | Managed Postgres with `pgvector`, SSL required |
+| Language model | Google AI Studio | Reached through the provider abstraction, swappable by env var |
+
+`render.yaml` is a blueprint rather than a Dockerfile, deliberately: this was
+built on a machine without Docker, so a Dockerfile could not have been built or
+run before shipping, and an untested container is worse than a build command
+whose every step can be reasoned about. The build trains the model rather than
+shipping an artifact, which also proves the training pipeline runs end to end on
+a clean machine.
+
+### The free tier sleeps, so something has to wake it
+
+Render suspends a free instance after fifteen minutes without traffic. Waking
+this one is not instant — it loads scikit-learn, the trained model, SHAP and an
+ONNX embedding model — so the first request after a quiet period waits about a
+minute. Measured, cold:
+
+```
+call 1   timed out at 90s    the request that triggered the wake
+call 2   20.1s               still starting
+call 3    0.30s              awake
+```
+
+A visitor who arrives cold sees a blank page and concludes the service is
+broken. It is not; it is asleep. A scheduled request hits
+[`/health`](https://pratyaya-api.onrender.com/health) every ten minutes so the
+instance never sees fifteen quiet ones, and the link responds immediately.
+
+That is a deployment-tier workaround, not architecture. On an instance that does
+not suspend, it goes away. It is written down here because an operational
+dependency that exists but is undocumented is the kind of thing that breaks six
+months later when nobody remembers why the schedule is there.
+
 ### Further reading
 
 - **[MODEL_CARD.md](MODEL_CARD.md)** — intended use, out-of-scope uses, the
