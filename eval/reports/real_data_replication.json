@@ -1,0 +1,30 @@
+{
+  "dataset": "Taiwan Default of Credit Card Clients",
+  "source": "OpenML default-of-credit-card-clients, version 1",
+  "n_rows": 30000,
+  "approval_rate": 0.7,
+  "bureau_only": {
+    "roc_auc": 0.7710838630169248,
+    "ks": 0.4172487742537088,
+    "bad_rate_among_approved": 0.12244138444361742,
+    "disparate_impact_ratio": 0.9271612465147003,
+    "qualified_approval_gap": 0.029827258088127584,
+    "female_qualified": 0.819023569023569,
+    "male_qualified": 0.7891963109354414
+  },
+  "with_behaviour": {
+    "roc_auc": 0.7829139878056419,
+    "ks": 0.43911236681028576,
+    "bad_rate_among_approved": 0.11965811965811966,
+    "disparate_impact_ratio": 0.918662079142885,
+    "qualified_approval_gap": 0.03539013321622009,
+    "female_qualified": 0.8425925925925926,
+    "male_qualified": 0.8072024593763725
+  },
+  "accuracy_replicates": true,
+  "fairness_testable_here": false,
+  "why_not": "Every account already holds a complete repayment record; no applicant is new-to-credit, so the data-availability gap the fairness claim depends on is absent.",
+  "missing_bureau_cells": 0,
+  "synthetic_ntc_female": 0.7071194890169809,
+  "synthetic_ntc_male": 0.5046614613681389
+}

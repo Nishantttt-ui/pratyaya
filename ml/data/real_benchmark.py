@@ -145,5 +145,22 @@ def load_taiwan_default() -> Benchmark:
     )
 
 
+# --- Feature families for the partial replication -------------------------
+# Taiwan's columns divide naturally into the two kinds of evidence this project
+# contrasts. The repayment-status columns are a delinquency record: the same
+# kind of information a credit bureau holds. The billing and payment amounts are
+# observed cash-flow behaviour, which is what alternative data supplies. That
+# makes it possible to run the accuracy half of the inclusion experiment on real
+# defaults rather than on generated ones.
+TAIWAN_BUREAU_LIKE = [
+    "credit_limit", "age", "education", "marriage",
+    *[f"repay_status_{i}" for i in range(1, 7)],
+]
+TAIWAN_BEHAVIOURAL = [
+    *[f"bill_amt_{i}" for i in range(1, 7)],
+    *[f"pay_amt_{i}" for i in range(1, 7)],
+]
+
+
 def load_all() -> list[Benchmark]:
     return [load_german_credit(), load_taiwan_default()]
