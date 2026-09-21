@@ -30,6 +30,7 @@ import pandas as pd
 
 from ml.data.generator import (
     INCLUSIVE_FEATURES,
+    TARGET_COLUMN,
     PROTECTED_ATTRIBUTES,
     TRADITIONAL_FEATURES,
     GeneratorConfig,
@@ -110,6 +111,25 @@ def main() -> None:
     df = generate_population(GeneratorConfig(n_applicants=30_000))
     df.to_csv(DATA / "applications.csv", index=False)
     print(f"  {len(df):,} applicants -> data/processed/applications.csv")
+
+    # A small, committed slice so the repository shows what the data looks like
+    # without anyone having to run training first. The full file is a build
+    # output and stays git-ignored; this one is stratified over the
+    # characteristics that matter to the argument, so it is representative
+    # rather than just the first few hundred rows.
+    # Built by concatenating per-stratum samples rather than groupby.apply:
+    # pandas 3 excludes the grouping columns from the applied frame, which
+    # silently dropped gender, is_new_to_credit and the outcome - the three
+    # columns that make this sample worth looking at.
+    strata = [
+        group.sample(min(len(group), 40), random_state=7)
+        for _, group in df.groupby(
+            ["gender", "is_new_to_credit", TARGET_COLUMN], observed=True
+        )
+    ]
+    sample = pd.concat(strata).sort_values("applicant_id")
+    sample.to_csv(ROOT / "data" / "sample_applications.csv", index=False)
+    print(f"  {len(sample)} row sample -> data/sample_applications.csv (committed)")
 
     print("\ntraining TRADITIONAL (bureau only) ...")
     traditional = _evaluate(df, TRADITIONAL_FEATURES, "traditional_bureau_only")

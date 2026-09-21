@@ -17,7 +17,10 @@ venv/
 .coverage
 htmlcov/
 
-# --- Data: large / licensed, not redistributed ---
+# --- Data ---
+# Build outputs, regenerated from a fixed seed by scripts/train.py. The
+# committed sample at data/sample_applications.csv shows the shape without
+# carrying five megabytes of generated rows in the history.
 data/raw/*
 !data/raw/.gitkeep
 data/processed/*
