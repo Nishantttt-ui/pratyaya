@@ -99,15 +99,30 @@ export default function App() {
         <div ref={resultRef}>
           {error && <div className="error" style={{ marginBottom: 16 }}>{error}</div>}
           {busy && (
-            <div className="card muted">
-              Assessing… scoring, explaining, retrieving the governing provisions,
-              and writing the notice.
+            <div className="card">
+              <h3>Assessing</h3>
+              <p className="muted" style={{ marginTop: -6, marginBottom: 18, fontSize: 13.5 }}>
+                Scoring, decomposing the score into reason codes, searching for
+                recourse, retrieving the governing provisions, and writing the notice.
+              </p>
+              <div className="skeleton">
+                <div className="line" style={{ width: "42%", height: 26 }} />
+                <div className="line" style={{ width: "100%" }} />
+                <div className="line" style={{ width: "94%" }} />
+                <div className="line" style={{ width: "88%" }} />
+                <div className="line" style={{ width: "60%" }} />
+              </div>
             </div>
           )}
           {!busy && !result && !error && (
-            <div className="card muted">
-              Select an applicant to see their decision, the reasons behind it,
-              what would change it, and the provisions that apply.
+            <div className="card empty">
+              <h3>Select an applicant</h3>
+              <p>
+                You will see the decision, the factors that drove it in the order the
+                model actually weighted them, what would change the outcome, and the
+                regulatory provisions that govern it — each retrieved for this
+                decision rather than boilerplate.
+              </p>
             </div>
           )}
           {!busy && result && <DecisionPanel result={result} />}
