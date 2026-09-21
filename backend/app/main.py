@@ -116,6 +116,7 @@ async def lifespan(app: FastAPI):
 
     users, generated = seed_demo_users(settings)
     app.state.users = users
+    app.state.demo_account_source = "generated" if generated else "from_environment"
     for username, password in generated.items():
         # Printed once, only for accounts whose password was not configured.
         logger.warning("generated_demo_credential", username=username, password=password)

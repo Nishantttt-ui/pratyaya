@@ -23,5 +23,10 @@ async def health(request: Request) -> dict:
             "policy_corpus": getattr(state, "corpus_size", 0),
             "vector_store": getattr(state, "vector_store_kind", "none"),
             "llm_provider": getattr(state, "provider_name", None) or "not_configured",
+            # Whether the demo accounts took their passwords from the
+            # environment or fell back to generated ones. Reports the source,
+            # never the value, so an operator can tell why a known password is
+            # being rejected without the endpoint disclosing a credential.
+            "demo_accounts": getattr(state, "demo_account_source", "unknown"),
         },
     }
