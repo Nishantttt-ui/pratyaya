@@ -413,7 +413,7 @@ block on each response says which path produced the wording.
 ### Everything you can run
 
 ```bash
-pytest                                       # 133 tests
+pytest                                       # 136 tests
 pytest --cov=backend/app --cov=ml            # coverage report
 ruff check backend ml eval scripts           # lint
 

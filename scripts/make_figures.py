@@ -68,7 +68,7 @@ plt.rcParams.update({
 })
 
 
-def _frame(fig, ax, title, subtitle=None):
+def _frame(fig, title, subtitle=None):
     """Place the title block above the axes and reserve room for it.
 
     Drawn at figure level rather than with ``ax.set_title`` so the subtitle
@@ -106,7 +106,7 @@ def reliability(p, y, path):
     ax.set_ylim(0, lim)
     ax.set_xlabel("Predicted probability of default")
     ax.set_ylabel("Observed default rate")
-    _frame(fig, ax, "A stated probability means what it says",
+    _frame(fig, "A stated probability means what it says",
            "Equal-population deciles, held-out applicants.  Expected calibration error 0.0073")
     fig.savefig(path, bbox_inches="tight")
     plt.close(fig)
@@ -141,7 +141,7 @@ def fairness_bars(rows, path):
     ax.legend(frameon=False, loc="upper left", fontsize=10.5, ncols=2,
               bbox_to_anchor=(0.0, 1.0))
     gap_trad, gap_incl = (trad[1] - trad[0]) * 100, (incl[1] - incl[0]) * 100
-    _frame(fig, ax, "The penalty fell on people who would have repaid",
+    _frame(fig, "The penalty fell on people who would have repaid",
            f"Approval held at 70%.  The women-men gap narrows from {gap_trad:.1f} points "
            f"to {gap_incl:.1f},\nwhile true default rates differ by only 0.4 points")
     fig.savefig(path, bbox_inches="tight")
@@ -162,7 +162,7 @@ def roc(curves, path):
     ax.set_xlabel("False positive rate")
     ax.set_ylabel("True positive rate")
     ax.legend(frameon=False, loc="lower right", fontsize=10.5)
-    _frame(fig, ax, "Alternative data separates risk better",
+    _frame(fig, "Alternative data separates risk better",
            "Held-out applicants.  The gain is largest where most decisions are made")
     fig.savefig(path, bbox_inches="tight")
     plt.close(fig)
@@ -202,7 +202,7 @@ def problem_scale(path):
     ax.set_ylim(0, 0.92)
     ax.yaxis.set_major_formatter(lambda v, _: f"{v*100:.0f}%")
     ax.set_ylabel("Share with no credit bureau record")
-    _frame(fig, ax, "Invisibility is not evenly distributed",
+    _frame(fig, "Invisibility is not evenly distributed",
            "The applicants a bureau-led model cannot see, by group")
     fig.savefig(path, bbox_inches="tight")
     plt.close(fig)
@@ -239,7 +239,7 @@ def waterfall(path):
     ax.set_xlabel("Contribution to the decision, in log-odds")
     ax.set_xlim(min(0, running) - 0.45, max(0.55, running + 0.45))
     ax.grid(axis="y", visible=False)
-    _frame(fig, ax, "Every factor, and exactly how much it counted",
+    _frame(fig, "Every factor, and exactly how much it counted",
            "One declined applicant. Contributions sum to the model's output "
            "to within 5e-15.")
     fig.savefig(path, bbox_inches="tight")
@@ -269,7 +269,7 @@ def latency_chart(path):
     ax.set_xlim(0, max(p50) * 1.28)
     ax.set_xlabel("Median latency per applicant, milliseconds")
     ax.grid(axis="y", visible=False)
-    _frame(fig, ax, "Explainability is not a latency trade",
+    _frame(fig, "Explainability is not a latency trade",
            "Exact reason codes add 0.34 ms to scoring. CPU only, no GPU.")
     fig.savefig(path, bbox_inches="tight")
     plt.close(fig)
@@ -299,7 +299,7 @@ def redteam_chart(path):
     ax.set_yticks(np.arange(0, 1.01, 0.25))
     ax.set_ylabel("Score against generated attacks")
     ax.legend(frameon=False, loc="center right", fontsize=10.5)
-    _frame(fig, ax, "Pattern matching plateaus against an adversary",
+    _frame(fig, "Pattern matching plateaus against an adversary",
            "Each round, a model invents attacks it was never shown. Recall "
            "stalls near 0.6.")
     fig.savefig(path, bbox_inches="tight")
@@ -338,7 +338,7 @@ def reject_inference_chart(path):
     subtitle = ("Censoring costs {:.4f} AUC. Fuzzy augmentation recovers {:.0%} of it."
                 .format(data["censoring_cost_auc"], share) if share else
                 "Censoring cost measured against an oracle.")
-    _frame(fig, ax1, "What a lender's own book hides", subtitle)
+    _frame(fig, "What a lender's own book hides", subtitle)
     fig.savefig(path, bbox_inches="tight")
     plt.close(fig)
 
@@ -370,7 +370,7 @@ def mitigation_chart(path):
     ax.set_ylim(min(auc) - 0.012, max(auc) + 0.014)
     ax.annotate("better on both axes", (0.012, max(auc) + 0.008), fontsize=10,
                 color=INCL, fontweight="600")
-    _frame(fig, ax, "Every algorithmic remedy paid for fairness",
+    _frame(fig, "Every algorithmic remedy paid for fairness",
            "Diamonds must read the applicant's gender to decide. Only widening "
            "the evidence improved both axes.")
     fig.savefig(path, bbox_inches="tight")
@@ -399,7 +399,7 @@ def real_validation_chart(path):
     ax.annotate("our difficulty sits between the two real datasets",
                 (1, 0.7797), xytext=(0, -46), textcoords="offset points",
                 ha="center", fontsize=10.5, color=INCL, fontweight="600")
-    _frame(fig, ax, "The same pipeline, on real credit data",
+    _frame(fig, "The same pipeline, on real credit data",
            "Identical code path: design matrix, booster, calibration, TreeSHAP, "
            "fairness audit.")
     fig.savefig(path, bbox_inches="tight")
