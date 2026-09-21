@@ -11,6 +11,7 @@ const WHITE = "FFFFFF", NEUTRAL = "F1F4F2", MUTED = "5A6570", BORDER = "DEE4E0";
 const INK_CARD = "22333F", INK_TEXT = "C2CDD6";
 
 const HEAD = "Cambria", BODY = "Calibri";
+const BYLINE = "NISHANT WADHWANI";
 const M = 0.55, W = 12.2;            // margin, usable width
 const shadow = () => ({ type: "outer", color: "9AA5AE", blur: 8, offset: 2, angle: 90, opacity: 0.22 });
 
@@ -138,6 +139,8 @@ let s = pres.addSlide();
 s.background = { color: INK };
 s.addText("SYNCHRONY HACKATHON  ·  PROBLEM STATEMENT 2", { x: M, y: 0.62, w: W, h: 0.3, isTextBox: true, margin: 0,
   fontFace: BODY, fontSize: 11.5, bold: true, color: GREEN_TEXT, charSpacing: 2.5 });
+s.addText(BYLINE, { x: M, y: 0.62, w: W, h: 0.3, isTextBox: true, margin: 0, align: "right",
+  fontFace: BODY, fontSize: 11.5, bold: true, color: "A8B8C4", charSpacing: 2.5 });
 s.addText("Pratyaya", { x: M, y: 1.5, w: W, h: 1.35, isTextBox: true, margin: 0,
   fontFace: HEAD, fontSize: 64, color: WHITE, valign: "top" });
 s.addText("Explainable, fairness-audited credit assessment for thin-file and new-to-credit borrowers",
@@ -458,18 +461,18 @@ const mrows = [
   ["ThresholdOptimizer", "0.677", { text: "0.1200", options: { color: RED } }, "1.000", { text: "YES", options: { color: RED, bold: true } }],
   ["ExponentiatedGradient", { text: "degenerate", options: { color: RED, italic: true } }, { text: "0.1191", options: { color: RED } }, "0.996", { text: "no", options: { color: MUTED } }],
 ];
-s.addTable(mrows, { x: M, y: 2.6, w: W, colW: [4.1, 1.5, 1.7, 2.4, 2.5], rowH: 0.42,
+s.addTable(mrows, { x: M, y: 2.35, w: W, colW: [4.1, 1.5, 1.7, 2.4, 2.5], rowH: 0.42,
   fontFace: BODY, fontSize: 12.5, color: INK, valign: "middle", align: "center",
   border: { type: "solid", color: BORDER, pt: 0.5 }, fill: { color: WHITE }, autoPage: false });
-s.addShape(pres.ShapeType.rect, { x: M, y: 2.6, w: W, h: 0.42, fill: { color: INK }, line: { type: "none" } });
+s.addShape(pres.ShapeType.rect, { x: M, y: 2.35, w: W, h: 0.42, fill: { color: INK }, line: { type: "none" } });
 [["Strategy", 4.1, "left"], ["AUC", 1.5, "center"], ["Bad rate", 1.7, "center"],
  ["Disparate impact", 2.4, "center"], ["Reads gender to decide?", 2.5, "center"]].reduce((x, c) => {
-  s.addText(c[0], { x: c[2] === "left" ? x + 0.15 : x, y: 2.6, w: c[2] === "left" ? c[1] - 0.2 : c[1], h: 0.42, isTextBox: true, margin: 0,
+  s.addText(c[0], { x: c[2] === "left" ? x + 0.15 : x, y: 2.35, w: c[2] === "left" ? c[1] - 0.2 : c[1], h: 0.42, isTextBox: true, margin: 0,
     align: c[2], valign: "middle", fontFace: BODY, fontSize: 11.5, bold: true, color: WHITE });
   return x + c[1];
 }, M);
-callout(s, 5.0, "Every algorithmic remedy bought fairness with accuracy or with risk. Widening the evidence was the only one that improved discrimination, risk and fairness together \u2014 and the only one needing the protected attribute at neither training nor decision time.", GREEN_PALE, GREEN, INK, 0.95);
-callout(s, 6.1, "Two failures recorded rather than smoothed over: CorrelationRemover cannot accept a missing bureau score, the very signal that defines a thin-file applicant. ExponentiatedGradient collapsed to approving 99% of everyone across five constraint tightnesses and three constraint types \u2014 at a 12% base rate, approving everyone satisfies parity exactly.", AMBER_PALE, AMBER, INK, 0.95);
+callout(s, 5.00, "Every algorithmic remedy bought fairness with accuracy or with risk. Widening the evidence was the only one that improved discrimination, risk and fairness together \u2014 and the only one needing the protected attribute at neither training nor decision time.", GREEN_PALE, GREEN, INK, 0.88);
+callout(s, 6.00, "Two failures recorded rather than smoothed over: CorrelationRemover cannot accept a missing bureau score, the very signal that defines a thin-file applicant. ExponentiatedGradient collapsed to approving 99% of everyone across five constraint tightnesses and three constraint types \u2014 at a 12% base rate, approving everyone satisfies parity exactly.", AMBER_PALE, AMBER, INK, 1.10);
 s.addNotes("The 'reads gender to decide' column is the point a fair-lending reviewer will care about. A remedy that applies a different threshold by group is disparate treatment, not a cure for it.");
 
 chartSlide("mitigation.png", 1.538,
@@ -524,7 +527,7 @@ title(s, "A decline that comes with a plan");
 lede(s, "Every option below is a genuine counterfactual: the feature is moved, the applicant is re-scored by the same model, and only changes that actually flip the decision are shown.", 1.42, MUTED, 11.7);
 cardRow(s, 2.45, 2.65, [
   { num: "₹", h: "Requested amount\n₹97,300  →  ₹43,100", b: "Requesting less lowers the monthly instalment." },
-  { num: "⏱", h: "Tenure\n6 months  →  14 months", b: "A longer term reduces each instalment." },
+  { num: "↔", h: "Tenure\n6 months  →  14 months", b: "A longer term reduces each instalment." },
   { num: "↑", numFill: AMBER, h: "Recharge regularity\n34%  →  40%", b: "A consistent recharge schedule builds this signal. Takes one to three months." },
 ], { headH: 0.7, headSize: 13.5 });
 [["Only what they can move.", "Age, education and employment sector are never suggested. Advising someone to be older is not recourse."],
@@ -578,7 +581,7 @@ s.addText([
  { text: ". Both steps would lower your monthly instalment.\n\nIn accordance with the RBI Fair Practices Code, we are providing these reasons for your application's decline in writing ", options: { color: INK } },
  { text: "[FPC-01]", options: { color: GREEN, bold: true } },
  { text: ".", options: { color: INK } },
-], { x: M + 0.35, y: 2.42, w: 7.2, h: 3.8, isTextBox: true, margin: 0, fontFace: BODY, fontSize: 13, lineSpacing: 19, valign: "top" });
+], { x: M + 0.35, y: 2.40, w: 7.2, h: 3.95, isTextBox: true, margin: 0, fontFace: BODY, fontSize: 12, lineSpacing: 17, valign: "top" });
 const nx = M + 8.25, nw = W - 8.25;
 [["Narrated by", "gemini-3.1-flash-lite"], ["End to end", "3.7 seconds"], ["Guardrails", "passed"],
  ["Citations", "CIC-04 · FPC-01 · DL-04"], ["Invented facts", "none"]].forEach((r, i) => {
@@ -641,7 +644,7 @@ cardRow(s, 2.38, 2.92, [
   { stat: "100%", statSize: 34, h: "Relevant provision in top 3", b: "Across 28 golden queries. 92.9% at rank 1, MRR 0.958. The two rank-1 misses are listed in the report." },
   { stat: "1.000", statSize: 34, h: "Guardrail F1", b: "Over 23 adversarial and benign cases. Benign cases count equally — a guardrail that blocks valid explanations breaks the duty to give reasons." },
   { stat: "0.0073", statSize: 34, h: "Expected calibration error", b: "A stated 8% risk lands within 0.7 points of the observed rate, so the probability is usable for pricing, not just ranking." },
-  { stat: "103", statSize: 34, h: "Tests, 89% coverage", b: "Defending the invariants that were expensive to get right, not asserting that code runs." },
+  { stat: "136", statSize: 34, h: "Tests, 88% coverage", b: "Defending the invariants that were expensive to get right, not asserting that code runs." },
 ], { headSize: 13, bodySize: 11 });
 callout(s, 5.5, "Stated plainly: that guardrail F1 is on 23 cases I wrote myself. It shows the guardrails catch the attacks I anticipated — not that they catch all attacks.", AMBER_PALE, AMBER, INK, 0.8);
 s.addNotes("Volunteer the caveat before anyone asks. A candidate who marks their own homework and says so is more trustworthy than one reporting a perfect score.");
@@ -678,7 +681,7 @@ cardRow(s, 1.42, 2.5, [
 ], { headSize: 13.5, bodySize: 11 });
 cardRow(s, 4.12, 2.5, [
   { num: "☁", h: "Bedrock-ready, honestly labelled", b: "Four providers behind one interface, selected by env var. The Bedrock adapter is wired but never run live — we had no AWS access, and this deck says so." },
-  { num: "⚿", numFill: RED, h: "Security posture", b: "No secret has a default; a placeholder JWT secret fails startup. Role-scoped responses omit internals rather than nulling them." },
+  { num: "⊗", numFill: RED, h: "Security posture", b: "No secret has a default; a placeholder JWT secret fails startup. Role-scoped responses omit internals rather than nulling them." },
   { num: "◉", h: "Embeddings run locally", b: "ONNX on CPU: no text leaves the machine, no per-query cost, and deterministic vectors so an audited retrieval can be reproduced later." },
 ], { headSize: 13.5, bodySize: 11 });
 s.addNotes("Each of these is a trade-off with a reason attached. That is what separates a considered build from a generated one.");
@@ -694,8 +697,7 @@ const FY = 1.72, FH = 1.15;
  ["Banks and FIPs", "release only what the consent artefact names", WHITE, BORDER],
  ["Lender (FIU)", "may use it only for the purpose recorded", GREEN_PALE, GREEN]].forEach((b, i) => {
   const w = (W - 3 * 0.42) / 4, x = M + i * (w + 0.42);
-  node(s, x, FY, w, FH, b[0], b[2], { fill: b[2], line: b[3], lw: b[3] === GREEN ? 1.25 : 0.75, titleColor: b[3] === GREEN ? GREEN : INK, subSize: 10 });
-  s.addText(b[1], { x: x + 0.16, y: FY + 0.44, w: w - 0.32, h: 0.62, isTextBox: true, margin: 0, fontFace: BODY, fontSize: 10.5, color: MUTED, lineSpacing: 13 });
+  node(s, x, FY, w, FH, b[0], b[1], { fill: b[2], line: b[3], lw: b[3] === GREEN ? 1.25 : 0.75, titleColor: b[3] === GREEN ? GREEN : INK, subSize: 10.5 });
   if (i < 3) arrow(s, x + w + 0.04, FY + FH / 2, x + w + 0.38, FY + FH / 2, "A8B4BC", 1.5);
 });
 
@@ -786,7 +788,7 @@ card(s, M, 3.36, W, 1.52, INK, null);
 s.addText("THE CODE", { x: M + 0.35, y: 3.54, w: W - 0.7, h: 0.28, isTextBox: true, margin: 0, fontFace: BODY, fontSize: 11, bold: true, color: GREEN_TEXT, charSpacing: 1.8 });
 s.addText([{ text: "github.com/Nishantttt-ui/pratyaya", options: { hyperlink: { url: "https://github.com/Nishantttt-ui/pratyaya", tooltip: "Open the source repository" }, color: WHITE, bold: true, fontSize: 30, fontFace: HEAD, underline: { style: "sng" } } }],
   { x: M + 0.35, y: 3.82, w: W - 0.7, h: 0.5, isTextBox: true, margin: 0 });
-s.addText("Public. 34 commits, CI green on every push, 136 tests, README with setup for the API and the interface, and a model card.", { x: M + 0.35, y: 4.34, w: W - 0.7, h: 0.4, isTextBox: true, margin: 0, fontFace: BODY, fontSize: 12.5, color: INK_TEXT });
+s.addText("Public. CI green on every push, 136 tests at 88% coverage, README with setup for the API and the interface, and a model card.", { x: M + 0.35, y: 4.34, w: W - 0.7, h: 0.4, isTextBox: true, margin: 0, fontFace: BODY, fontSize: 12.5, color: INK_TEXT });
 
 [["136", "tests passing", "guarding the invariants that were expensive to get right"],
  ["10", "charts", "each regenerated from a committed measurement file"],
@@ -803,6 +805,8 @@ s.addNotes("Read both links out. This is the slide that turns a deck into someth
 
 // ================= 17. NEXT =================
 s = pres.addSlide(); s.background = { color: INK };
+s.addText(BYLINE, { x: M, y: 0.55, w: W, h: 0.3, isTextBox: true, margin: 0, align: "right",
+  fontFace: BODY, fontSize: 11.5, bold: true, color: "A8B8C4", charSpacing: 2.5 });
 s.addText("WHERE THIS GOES NEXT", { x: M, y: 0.55, w: W, h: 0.3, isTextBox: true, margin: 0,
   fontFace: BODY, fontSize: 11.5, bold: true, color: GREEN_TEXT, charSpacing: 2.5 });
 s.addText("Five things I would do with a real portfolio", { x: M, y: 1.0, w: 11.4, h: 0.8, isTextBox: true, margin: 0,

@@ -152,11 +152,9 @@ def roc(curves, path):
     fig, ax = plt.subplots(figsize=(6.2, 4.4), dpi=200)
     ax.plot([0, 1], [0, 1], color=MUTED, lw=1.2, ls=(0, (4, 3)), zorder=1)
     for (name, fpr, tpr, auc, colour) in curves:
+        # The legend already names both curves with their AUC; an on-curve
+        # label only repeated it and sat across the line it was labelling.
         ax.plot(fpr, tpr, color=colour, lw=2.2, zorder=3, label=f"{name}  AUC {auc:.3f}")
-        idx = int(len(fpr) * 0.42)
-        ax.annotate(name, (fpr[idx], tpr[idx]), textcoords="offset points",
-                    xytext=(10, -12 if colour == TRAD else 8), fontsize=10.5,
-                    fontweight="600", color=colour)
     ax.set_xlim(0, 1)
     ax.set_ylim(0, 1.02)
     ax.set_xlabel("False positive rate")
@@ -223,21 +221,23 @@ def waterfall(path):
     labels = [c.label for c in codes][::-1]
     values = [c.contribution for c in codes][::-1]
 
+    # Every bar is anchored at zero: right of the axis pushed toward decline,
+    # left of it toward approval. An offset (cumulative) baseline would draw a
+    # negative contribution to the right of zero, which reads as the opposite
+    # of what it means.
     fig, ax = plt.subplots(figsize=(7.2, 4.6), dpi=200)
-    running = 0.0
     for i, v in enumerate(values):
         colour = TRAD if v > 0 else INCL
-        ax.barh(i, v, left=running, height=0.6, color=colour, zorder=3)
-        ax.annotate(f"{v:+.2f}", (running + v, i), xytext=(6 if v > 0 else -6, 0),
+        ax.barh(i, v, height=0.6, color=colour, zorder=3)
+        ax.annotate(f"{v:+.2f}", (v, i), xytext=(6 if v > 0 else -6, 0),
                     textcoords="offset points", va="center",
                     ha="left" if v > 0 else "right",
                     fontsize=10.5, fontweight="600", color=INK)
-        running += v
     ax.axvline(0, color=MUTED, lw=1.2, zorder=2)
     ax.set_yticks(range(len(labels)))
     ax.set_yticklabels(labels, fontsize=11)
     ax.set_xlabel("Contribution to the decision, in log-odds")
-    ax.set_xlim(min(0, running) - 0.45, max(0.55, running + 0.45))
+    ax.set_xlim(min(min(values), 0.0) - 0.32, max(max(values), 0.0) + 0.32)
     ax.grid(axis="y", visible=False)
     _frame(fig, "Every factor, and exactly how much it counted",
            "One declined applicant. Contributions sum to the model's output "
@@ -298,7 +298,9 @@ def redteam_chart(path):
     ax.set_ylim(0, 1.22)
     ax.set_yticks(np.arange(0, 1.01, 0.25))
     ax.set_ylabel("Score against generated attacks")
-    ax.legend(frameon=False, loc="center right", fontsize=10.5)
+    # "center right" sat the legend on top of the final recall point and its
+    # 0.60 label; the lower-left quadrant is empty in every round.
+    ax.legend(frameon=False, loc="lower left", fontsize=10.5)
     _frame(fig, "Pattern matching plateaus against an adversary",
            "Each round, a model invents attacks it was never shown. Recall "
            "stalls near 0.6.")
@@ -343,6 +345,16 @@ def reject_inference_chart(path):
     plt.close(fig)
 
 
+# Hand-placed so no two labels collide and none lands on the x-axis.
+_MITIGATION_LABEL_OFFSETS = {
+    "Baseline": (11, 6),
+    "Alternative data": (12, 7),
+    "CorrelationRemover": (11, -17),
+    "ThresholdOptimizer": (13, 6),
+    "ExponentiatedGradient": (13, 7),
+}
+
+
 def mitigation_chart(path):
     data = _load("mitigation_comparison.json")
     if not data:
@@ -360,16 +372,19 @@ def mitigation_chart(path):
         ax.scatter(g, a, s=230 if ours else 150, color=colour, zorder=4,
                    edgecolor="white", linewidth=2,
                    marker="D" if n else "o")
+        # Placed per point rather than by an alternating rule: the naive
+        # alternation put "Alternative data" on top of "CorrelationRemover".
+        dx, dy = _MITIGATION_LABEL_OFFSETS.get(lab, (10, 8))
         ax.annotate(lab + ("  (reads gender)" if n else ""),
-                    (g, a), xytext=(9, 7 if i % 2 == 0 else -16),
+                    (g, a), xytext=(dx, dy),
                     textcoords="offset points", fontsize=10.5,
                     fontweight="600" if ours else "400", color=INK)
-    ax.set_xlabel("Qualified-approval gap  ←  fairer")
-    ax.set_ylabel("Ranking quality (AUC)  →  better")
-    ax.set_xlim(-0.012, max(gap) * 1.55)
-    ax.set_ylim(min(auc) - 0.012, max(auc) + 0.014)
-    ax.annotate("better on both axes", (0.012, max(auc) + 0.008), fontsize=10,
-                color=INCL, fontweight="600")
+    # Spelled out rather than drawn with arrow glyphs, which the deck font
+    # renders as empty boxes.
+    ax.set_xlabel("Qualified-approval gap  (lower is fairer)")
+    ax.set_ylabel("Ranking quality (AUC)  (higher is better)")
+    ax.set_xlim(-0.012, max(gap) * 1.62)
+    ax.set_ylim(min(auc) - 0.030, max(auc) + 0.028)
     _frame(fig, "Every algorithmic remedy paid for fairness",
            "Diamonds must read the applicant's gender to decide. Only widening "
            "the evidence improved both axes.")
@@ -396,9 +411,9 @@ def real_validation_chart(path):
     ax.set_xticklabels(names, fontsize=10.5)
     ax.set_ylim(0.70, 0.80)
     ax.set_ylabel("ROC AUC on held-out data")
-    ax.annotate("our difficulty sits between the two real datasets",
-                (1, 0.7797), xytext=(0, -46), textcoords="offset points",
-                ha="center", fontsize=10.5, color=INCL, fontweight="600")
+    # The point this chart makes is carried by the slide's takeaway bar. An
+    # annotation placed inside the axes here ran behind the bars and was
+    # chopped into unreadable fragments.
     _frame(fig, "The same pipeline, on real credit data",
            "Identical code path: design matrix, booster, calibration, TreeSHAP, "
            "fairness audit.")
