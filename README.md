@@ -245,6 +245,71 @@ flowchart TB
 Green components are load-bearing: the decision and the compliant notice depend
 only on them. The amber component is optional and can fail without consequence.
 
+### What happens when an application arrives
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant UI as React UI
+    participant API as FastAPI
+    participant M as Model + TreeSHAP
+    participant DB as pgvector
+    participant G as Guardrails
+    participant LLM as LLM provider
+
+    UI->>API: POST /assessments (no name, PAN or Aadhaar)
+    API->>API: validate — 422 on an identifier or out-of-range value
+    API->>M: score, decompose, search for recourse
+    M-->>API: decision, reason codes, counterfactuals
+    API->>DB: retrieve the governing provisions
+    DB-->>API: cited clauses
+    API->>API: render the deterministic notice — COMPLETE AND COMPLIANT
+    Note over API: the decision, reasons, recourse and citations are now final
+
+    API->>G: check the assembled prompt
+    alt prompt is clean
+        G->>LLM: narrate the finished notice
+        LLM-->>G: generated wording
+        G->>G: contradiction? identifier? guarantee?
+        alt passes
+            G-->>API: use the generated wording
+        else fails
+            G-->>API: discard it, serve the deterministic notice
+        end
+    else injection or PII detected
+        G-->>API: never call the model, serve the deterministic notice
+    end
+    API-->>UI: decision, projected to the caller's role
+```
+
+Every path through that diagram ends with the applicant holding a correct,
+complete, cited decision. The only thing that varies is who wrote the sentences.
+
+### Where a guardrail can intervene
+
+```mermaid
+flowchart LR
+    P[Prompt assembled<br/>from the decision only] --> I{Inbound<br/>guardrail}
+    I -->|PII or injection| D[Deterministic notice]
+    I -->|clean| L[LLM narrates]
+    L -->|provider error,<br/>rate limit, timeout| D
+    L --> O{Outbound<br/>guardrail}
+    O -->|contradicts the decision| D
+    O -->|leaks an identifier| D
+    O -->|promises approval| D
+    O -->|faithful| G[Generated wording]
+    D --> R[Response]
+    G --> R
+
+    style D fill:#1f6f4a,color:#fff
+    style G fill:#8a5a00,color:#fff
+    style I fill:#7a2530,color:#fff
+    style O fill:#7a2530,color:#fff
+```
+
+Measured on a flaky free tier, five of ten requests took a red path. Every one
+of them still returned the correct decision, reasons, recourse and citations.
+
 ### Layer map
 
 | Brief's layer | Built as | Note |
@@ -263,20 +328,60 @@ Homebrew, and no compiled system libraries are needed — the project deliberate
 avoids LightGBM and XGBoost because both dynamically link `libomp` on macOS,
 which breaks installation on a machine without Homebrew.
 
-```bash
-git clone <repository-url> && cd pratyaya
+### 1. The API
 
-uv venv --python 3.12
+```bash
+git clone https://github.com/Nishantttt-ui/pratyaya.git && cd pratyaya
+
+# with uv (fast), or use the plain-pip lines beneath
+uv venv --python 3.12 && source .venv/bin/activate
 uv pip install -e ".[dev]"
+
+# or, without uv:
+#   python3.12 -m venv .venv && source .venv/bin/activate
+#   pip install -e ".[dev]"
 
 cp .env.example .env
 python -c "import secrets; print(secrets.token_urlsafe(48))"   # paste into JWT_SECRET
+#   DATABASE_URL is optional: with none reachable, retrieval falls back to an
+#   in-memory store and /health reports which path is live.
 
-python scripts/train.py            # trains both models, writes ml/artifacts/
-uvicorn backend.app.main:app --reload
+python scripts/train.py                                # trains both models
+uvicorn backend.app.main:app --reload --port 8000
 ```
 
-Open <http://localhost:8000/docs> for the generated OpenAPI documentation.
+Open <http://localhost:8000/docs> for the generated OpenAPI documentation, or
+<http://localhost:8000/health> to see which components came up.
+
+### 2. The interface
+
+```bash
+cd frontend
+npm install
+cp .env.example .env          # VITE_API_BASE defaults to http://localhost:8000
+npm run dev                   # http://localhost:5173
+```
+
+Sign in with the demo accounts — `underwriter` and `applicant` — using the
+passwords you set in the API's `.env`. If you left them unset, a random one is
+generated per run and printed once to the API console.
+
+The two roles are the point: both see the same decision, the same reasons and
+the same recourse, but the probability, the threshold, the signed contributions
+and the provenance block are absent from the applicant response entirely.
+
+### 3. Optional: a real database and a real model
+
+```bash
+# PostgreSQL with pgvector (Neon's free tier works; any Postgres 15+ will do)
+#   set DATABASE_URL in .env, then:
+python scripts/index_policy_corpus.py     # indexes the corpus and verifies it
+                                          # returns the same results as in-memory
+
+# a language model for the narration layer (optional; Gemini or Groq free tier)
+#   set GEMINI_API_KEY or GROQ_API_KEY, then:
+python scripts/demo_guardrails.py         # five guardrail scenarios, live
+```
 
 **An LLM API key is optional.** With `GEMINI_API_KEY` or `GROQ_API_KEY` set, the
 narrative is generated and guardrailed. Without one, every endpoint still returns
@@ -286,17 +391,22 @@ block on each response says which path produced the wording.
 ### Everything you can run
 
 ```bash
-pytest                                     # 103 tests
-pytest --cov=backend/app --cov=ml          # 89% coverage
-ruff check backend ml eval scripts         # lint
+pytest                                       # 133 tests
+pytest --cov=backend/app --cov=ml            # coverage report
+ruff check backend ml eval scripts           # lint
 
-python scripts/train.py                    # train both models, write artifacts
-python eval/run_eval.py                    # retrieval, guardrails, faithfulness, calibration
-python scripts/validate_on_real_data.py    # the same pipeline on two real datasets
-python scripts/compare_mitigations.py      # against Fairlearn's algorithmic remedies
-python scripts/benchmark_latency.py        # per-stage decision latency
-python scripts/make_figures.py             # the deck's charts
-node scripts/deck/build_deck.js            # rebuild the deck itself
+python scripts/train.py                      # train both models, write artifacts
+python eval/run_eval.py                      # retrieval, guardrails, faithfulness, calibration
+python scripts/validate_on_real_data.py      # the same pipeline on two real datasets
+python scripts/replicate_inclusion_on_real_data.py   # the finding, tested on real defaults
+python scripts/compare_mitigations.py        # against Fairlearn's algorithmic remedies
+python scripts/reject_inference_experiment.py        # what past policy hides, and recovery
+python scripts/benchmark_latency.py          # per-stage decision latency
+python scripts/index_policy_corpus.py        # index into pgvector and verify  (needs a DB)
+python scripts/demo_guardrails.py            # five guardrail scenarios        (needs a key)
+python scripts/redteam_guardrails.py         # attacks invented by a model     (needs a key)
+python scripts/make_figures.py               # the ten charts in the deck
+node scripts/deck/build_deck.js              # rebuild the deck itself
 ```
 
 Every number quoted in this README and in the deck is produced by one of these
