@@ -60,6 +60,69 @@ function cardRow(s, y, h, items, opts = {}) {
       lineSpacing: 16, valign: "top" });
   });
 }
+// --- diagram primitives ---------------------------------------------------
+// Drawn as native shapes rather than imported images so they stay crisp at any
+// zoom and remain editable in PowerPoint.
+function node(s, x, y, w, h, title, sub, opts = {}) {
+  s.addShape(pres.ShapeType.roundRect, {
+    x, y, w, h, rectRadius: 0.07,
+    fill: { color: opts.fill || WHITE },
+    line: { color: opts.line || BORDER, width: opts.lw || 0.75 },
+    shadow: opts.flat ? undefined : shadow(),
+  });
+  const pad = 0.16;
+  const reserve = opts.reserveRight || 0;   // room for a corner badge
+  s.addText(title, {
+    x: x + pad, y: y + (sub ? 0.06 : 0), w: w - pad * 2 - reserve, h: sub ? 0.28 : h,
+    isTextBox: true, margin: 0, valign: sub ? "top" : "middle",
+    align: opts.align || "left",
+    fontFace: BODY, fontSize: opts.titleSize || 12.5, bold: true,
+    color: opts.titleColor || INK,
+  });
+  if (sub) {
+    s.addText(sub, {
+      x: x + pad, y: y + 0.33, w: w - pad * 2, h: h - 0.38, isTextBox: true, margin: 0,
+      fontFace: BODY, fontSize: opts.subSize || 10.5, color: opts.subColor || MUTED,
+      lineSpacing: 12, valign: "top",
+    });
+  }
+}
+
+function arrow(s, x1, y1, x2, y2, color = "9AA7AE", width = 1.5) {
+  s.addShape(pres.ShapeType.line, {
+    x: Math.min(x1, x2), y: Math.min(y1, y2),
+    w: Math.abs(x2 - x1), h: Math.abs(y2 - y1),
+    line: { color, width, endArrowType: "triangle" },
+    flipH: x2 < x1, flipV: y2 < y1,
+  });
+}
+
+function bandLabel(s, x, y, w, text, color) {
+  s.addText(text, {
+    x, y, w, h: 0.26, isTextBox: true, margin: 0,
+    fontFace: BODY, fontSize: 9.5, bold: true, color,
+    charSpacing: 1.6,
+  });
+}
+
+// A slide whose argument is a chart: heading, one line of context, the figure
+// sized to its true aspect so it cannot distort, and a conclusion beneath.
+function chartSlide(file, aspect, heading, lede_, conclusion, opts = {}) {
+  const sl = pres.addSlide();
+  sl.background = { color: opts.bg || WHITE };
+  title(sl, heading, 0.45, INK, 30);
+  lede(sl, lede_, 0.98, MUTED, 11.9, 12.5);
+  const bottom = conclusion ? 5.62 : 6.7;
+  const maxH = bottom - 1.62, maxW = opts.maxW || 9.4;
+  let h = maxH, w = h * aspect;
+  if (w > maxW) { w = maxW; h = w / aspect; }
+  sl.addImage({ path: path.join(FIG, file), x: M + (W - w) / 2, y: 1.62, w, h });
+  if (conclusion) callout(sl, bottom + 0.12, conclusion, opts.calloutFill || GREEN_PALE,
+                          opts.calloutBar || GREEN, INK, opts.calloutH || 0.86);
+  sl.addNotes(opts.notes || conclusion || lede_);
+  return sl;
+}
+
 function footnote(s, text, color = "8A949C") {
   s.addText(text, { x: M, y: 6.92, w: W, h: 0.33, isTextBox: true, margin: 0,
     fontFace: BODY, fontSize: 10.5, italic: true, color, valign: "top" });
@@ -108,6 +171,12 @@ cardRow(s, 2.7, 3.05, [
 footnote(s, "Figures from the project's reference population of 30,000 applicants");
 s.addNotes("The key word is unobserved. This is a measurement failure that looks like a risk judgement.");
 
+chartSlide("ntc_by_group.png", 1.582,
+  "The people a bureau-led model cannot see",
+  "Share of applicants with no credit bureau record at all, by group. Nothing here is about repayment \u2014 it is about visibility.",
+  "Women are new-to-credit 70.6% of the time against 51.0% for men; rural and tier-3 applicants 67.5% against 51.8% in metros. A model leaning on the bureau record inherits that gap wholesale, before it has learned anything about risk.",
+  { maxW: 8.4 });
+
 // ================= 3. INSIGHT =================
 s = pres.addSlide(); s.background = { color: GREEN };
 s.addText("THE INSIGHT THE WHOLE BUILD RESTS ON", { x: M, y: 1.35, w: W, h: 0.3, isTextBox: true, margin: 0,
@@ -136,32 +205,103 @@ s.addNotes("If they remember one slide, it should be this one. In regulated lend
 
 // ================= 5. ARCHITECTURE =================
 s = pres.addSlide(); s.background = { color: NEUTRAL };
-title(s, "How a request flows", 0.5, INK, 32);
-const row1 = [
-  { t: "React UI", d: "Applicant and\nunderwriter views", f: WHITE, l: BORDER, c: INK },
-  { t: "FastAPI", d: "JWT auth, validation,\nrate limiting", f: WHITE, l: BORDER, c: INK },
-  { t: "Decision core", d: "Calibrated booster →\nTreeSHAP → recourse", f: GREEN_PALE, l: GREEN, c: GREEN },
-  { t: "PostgreSQL + pgvector", d: "37 provisions,\nlocal ONNX embeddings", f: WHITE, l: BORDER, c: INK },
-];
-row1.forEach((b, i) => {
-  const cw = (W - 0.9) / 4, x = M + i * (cw + 0.3);
-  card(s, x, 1.55, cw, 1.3, b.f, b.l);
-  s.addText(b.t, { x: x + 0.22, y: 1.72, w: cw - 0.44, h: 0.4, isTextBox: true, margin: 0, fontFace: BODY, fontSize: 14, bold: true, color: b.c });
-  s.addText(b.d, { x: x + 0.22, y: 2.12, w: cw - 0.44, h: 0.65, isTextBox: true, margin: 0, fontFace: BODY, fontSize: 11.5, color: MUTED, lineSpacing: 15 });
-  if (i < 3) s.addShape(pres.ShapeType.rightArrow, { x: x + cw + 0.03, y: 2.06, w: 0.24, h: 0.28, fill: { color: "A8B4BC" }, line: { type: "none" } });
+title(s, "System architecture", 0.45, INK, 30);
+s.addText("Green components are load-bearing: the decision and the compliant notice depend only on them. Amber is optional and can fail without consequence.",
+  { x: M, y: 1.0, w: 11.9, h: 0.42, isTextBox: true, margin: 0, fontFace: BODY, fontSize: 12.5, color: MUTED });
+
+const LX = M, LW = 1.45, CX = M + 1.58, CW = W - 1.58, RH = 0.72, RG = 0.08;
+const rowY = (i) => 1.42 + i * (RH + RG);
+
+// row 0 — client
+bandLabel(s, LX, rowY(0) + 0.22, LW, "CLIENT", MUTED);
+node(s, CX, rowY(0), CW / 2 - 0.08, RH, "React + TypeScript — applicant view", "decision, reasons, recourse, citations", { subSize: 9.5 });
+node(s, CX + CW / 2 + 0.08, rowY(0), CW / 2 - 0.08, RH, "React + TypeScript — underwriter view", "adds probability, SHAP contributions, provenance", { subSize: 9.5 });
+
+// row 1 — api
+bandLabel(s, LX, rowY(1) + 0.22, LW, "API", MUTED);
+["JWT auth\n+ roles", "Pydantic\nvalidation", "Rate\nlimiting", "Role\nprojection", "Structured\nlogging"].forEach((t, i) => {
+  const w = (CW - 4 * 0.1) / 5;
+  node(s, CX + i * (w + 0.1), rowY(1), w, RH, t.replace("\n", " "), null, { titleSize: 11, align: "center" });
 });
-card(s, M, 3.1, W, 0.95, GREEN_PALE, GREEN);
-s.addText("Deterministic notice — complete and compliant at this point", { x: M + 0.3, y: 3.24, w: W - 0.6, h: 0.32, isTextBox: true, margin: 0, fontFace: BODY, fontSize: 14, bold: true, color: GREEN });
-s.addText("Reason codes, recourse and citations, rendered without any language model involved", { x: M + 0.3, y: 3.58, w: W - 0.6, h: 0.32, isTextBox: true, margin: 0, fontFace: BODY, fontSize: 12, color: INK });
-const gw = 4.2;
-card(s, M, 4.3, gw, 1.35, "F7E5E4", RED);
-s.addText("Guardrails", { x: M + 0.25, y: 4.48, w: gw - 0.5, h: 0.32, isTextBox: true, margin: 0, fontFace: BODY, fontSize: 14, bold: true, color: RED });
-s.addText("PII · prompt injection · decision contradiction", { x: M + 0.25, y: 4.82, w: gw - 0.5, h: 0.6, isTextBox: true, margin: 0, fontFace: BODY, fontSize: 11.5, color: INK, lineSpacing: 15 });
-card(s, M + gw + 0.3, 4.3, W - gw - 0.3, 1.35, AMBER_PALE, "D8B478");
-s.addText("LLM provider — optional", { x: M + gw + 0.55, y: 4.48, w: W - gw - 0.8, h: 0.32, isTextBox: true, margin: 0, fontFace: BODY, fontSize: 14, bold: true, color: AMBER });
-s.addText("Gemini · Groq · Ollama · Bedrock, selected by one environment variable. Rejected output falls back to the notice above.", { x: M + gw + 0.55, y: 4.82, w: W - gw - 0.8, h: 0.6, isTextBox: true, margin: 0, fontFace: BODY, fontSize: 11.5, color: INK, lineSpacing: 15 });
-footnote(s, "Green components are load-bearing. The amber one can fail without consequence to the decision.");
-s.addNotes("Walk it left to right along the top, then down. The point of the layout is that everything green completes before anything amber is called.");
+
+// row 2 — orchestration
+bandLabel(s, LX, rowY(2) + 0.22, LW, "SERVICE", MUTED);
+node(s, CX, rowY(2), CW, RH, "DecisionService — decide, explain, retrieve, render, then optionally narrate", "the ordering is the architecture: a complete compliant answer exists before any model is called", { subSize: 9.5 });
+
+// row 3 — decision core (load-bearing)
+bandLabel(s, LX, rowY(3) + 0.22, LW, "DECISION", GREEN);
+[["HistGradientBoosting", "calibrated, handles NaN natively"],
+ ["TreeSHAP", "exact reason codes, error 5e-15"],
+ ["Counterfactual search", "recourse re-scored by the model"]].forEach((b, i) => {
+  const w = (CW - 2 * 0.1) / 3;
+  node(s, CX + i * (w + 0.1), rowY(3), w, RH, b[0], b[1], { fill: GREEN_PALE, line: GREEN, lw: 1.25, titleColor: GREEN, subColor: "2F4A40", subSize: 9.5 });
+});
+
+// row 4 — knowledge
+bandLabel(s, LX, rowY(4) + 0.22, LW, "KNOWLEDGE", MUTED);
+[["PostgreSQL + pgvector", "Neon, Singapore · HNSW index · 37 provisions"],
+ ["bge-small-en-v1.5 (ONNX)", "embeddings computed locally, no text leaves the host"]].forEach((b, i) => {
+  const w = (CW - 0.1) / 2;
+  node(s, CX + i * (w + 0.1), rowY(4), w, RH, b[0], b[1], { subSize: 9.5 });
+});
+
+// row 5 — ai layer (optional)
+bandLabel(s, LX, rowY(5) + 0.22, LW, "AI LAYER", AMBER);
+node(s, CX, rowY(5), CW * 0.3, RH, "Guardrails", "PII · injection · contradiction", { fill: "F7E5E4", line: RED, lw: 1.25, titleColor: RED, subColor: "4A2A28", subSize: 9.5 });
+node(s, CX + CW * 0.3 + 0.1, rowY(5), CW * 0.7 - 0.1, RH, "Provider abstraction — Gemini · Groq · Ollama · Bedrock", "selected by one environment variable; rejected output falls back to the deterministic notice", { fill: AMBER_PALE, line: "D8B478", lw: 1.25, titleColor: AMBER, subColor: "4A3A22", subSize: 9.5 });
+
+// row 6 — data
+bandLabel(s, LX, rowY(6) + 0.22, LW, "DATA", MUTED);
+[["Applicant population", "generated, documented causal structure"],
+ ["Regulatory corpus", "5 instruments, paraphrased and cited"],
+ ["Model artifacts", "calibrated model, SHAP background"]].forEach((b, i) => {
+  const w = (CW - 2 * 0.1) / 3;
+  node(s, CX + i * (w + 0.1), rowY(6), w, RH, b[0], b[1], { subSize: 9.5 });
+});
+
+// flow arrows down the left gutter of the content column
+for (let i = 0; i < 6; i++) arrow(s, CX - 0.14, rowY(i) + RH, CX - 0.14, rowY(i + 1), "A8B4BC", 1.25);
+
+s.addText("Every layer shown is running: /health reports model ready, 37 provisions, vector_store pgvector, llm_provider gemini",
+  { x: M, y: 7.02, w: W, h: 0.3, isTextBox: true, margin: 0, fontFace: BODY, fontSize: 10.5, italic: true, color: "8A949C" });
+s.addNotes("Walk down the bands. The point to land: everything green completes before anything amber is called, so the amber row can fail entirely and the applicant still receives a correct, compliant, cited decision.");
+
+// ================= 5b. DECISION FLOW =================
+s = pres.addSlide(); s.background = { color: WHITE };
+title(s, "What happens when an application arrives", 0.45, INK, 30);
+lede(s, "Ten steps. The first six are deterministic and complete in about ten milliseconds. Only then is a language model consulted, and only about wording.", 0.98, MUTED, 11.9, 12.5);
+
+s.addShape(pres.ShapeType.roundRect, { x: M, y: 1.62, w: W, h: 1.74, rectRadius: 0.1, fill: { color: GREEN_PALE }, line: { type: "none" } });
+bandLabel(s, M + 0.26, 1.76, 6.0, "DETERMINISTIC  ·  COMPLETES IN ~10 MS  ·  NO MODEL INVOLVED", GREEN);
+[["1", "Validate", "422 on out-of-range\nor identifier fields"],
+ ["2", "Score", "calibrated PD\n3.2 ms"],
+ ["3", "Reason codes", "exact TreeSHAP\n+0.34 ms"],
+ ["4", "Recourse", "counterfactuals\nre-scored"],
+ ["5", "Retrieve", "pgvector\nprovisions"],
+ ["6", "Render notice", "complete and\ncompliant"]].forEach((b, i) => {
+  const w = (W - 0.52 - 5 * 0.12) / 6, x = M + 0.26 + i * (w + 0.12);
+  node(s, x, 2.1, w, 1.06, b[1], b[2].replace("\\n", " "), { fill: WHITE, line: GREEN, lw: 1, titleSize: 11.5, subSize: 9.5, titleColor: GREEN, reserveRight: 0.46 });
+  badge(s, x + w - 0.38, 2.16, b[0], GREEN, WHITE);
+  if (i < 5) arrow(s, x + w + 0.005, 2.63, x + w + 0.115, 2.63, "7FAF9B", 1.2);
+});
+
+s.addShape(pres.ShapeType.roundRect, { x: M, y: 3.52, w: W, h: 0.5, rectRadius: 0.08, fill: { color: INK }, line: { type: "none" } });
+s.addText("THE DECISION, THE REASONS, THE RECOURSE AND THE CITATIONS ARE NOW FINAL", { x: M, y: 3.52, w: W, h: 0.5, isTextBox: true, margin: 0, align: "center", valign: "middle", fontFace: BODY, fontSize: 12.5, bold: true, color: "9FE0C4", charSpacing: 1.2 });
+
+s.addShape(pres.ShapeType.roundRect, { x: M, y: 4.18, w: W, h: 1.74, rectRadius: 0.1, fill: { color: AMBER_PALE }, line: { type: "none" } });
+bandLabel(s, M + 0.26, 4.32, 7.0, "OPTIONAL  ·  WORDING ONLY  ·  ~2 S  ·  MAY FAIL WITHOUT CONSEQUENCE", AMBER);
+[["7", "Guardrail in", "scan the assembled\nprompt"],
+ ["8", "Narrate", "the model rewrites\nthe notice"],
+ ["9", "Guardrail out", "contradiction, PII,\nguarantees"],
+ ["10", "Project by role", "underwriter sees more\nthan the applicant"]].forEach((b, i) => {
+  const w = (W - 0.52 - 3 * 0.12) / 4, x = M + 0.26 + i * (w + 0.12);
+  node(s, x, 4.66, w, 1.06, b[1], b[2].replace("\\n", " "), { fill: WHITE, line: "D8B478", lw: 1, titleSize: 11.5, subSize: 9.5, titleColor: AMBER, reserveRight: 0.46 });
+  badge(s, x + w - 0.38, 4.72, b[0], AMBER, WHITE);
+  if (i < 3) arrow(s, x + w + 0.005, 5.19, x + w + 0.115, 5.19, "C8A46E", 1.2);
+});
+
+callout(s, 6.08, "If steps 7 to 9 fail for any reason \u2014 outage, rate limit, a guardrail firing \u2014 the applicant receives the notice rendered at step 6. Measured on a flaky free tier, that happened to half of all requests, and every one of them was still correct.", GREEN_PALE, GREEN, INK, 0.8);
+s.addNotes("The black bar is the slide. Everything above it is finished before anything below it runs.");
 
 // ================= 6. DATA =================
 s = pres.addSlide(); s.background = { color: WHITE };
@@ -205,6 +345,12 @@ s.addShape(pres.ShapeType.rect, { x: M, y: 2.75, w: W, h: 0.42, fill: { color: I
 callout(s, 4.6, "Our synthetic population's difficulty sits between the two real datasets, which is the answer to \u201Cyou tuned it to a flattering level\u201D. TreeSHAP stays exact on real data. The audit also found a genuine violation rather than rubber-stamping: age band on German Credit fails the 80% rule at 0.783.", GREEN_PALE, GREEN, INK, 1.0);
 callout(s, 5.75, "What this does NOT establish: neither dataset carries alternative data, so the inclusion finding cannot be reproduced on them. That claim rests on the synthetic population, and this deck says so.", AMBER_PALE, AMBER, INK, 0.85);
 s.addNotes("Lead with this when challenged on synthetic data. The machinery is validated on real defaults; only the inclusion comparison needs the generator. Note we report the scope limit ourselves.");
+
+chartSlide("real_validation.png", 1.582,
+  "Our difficulty sits between two real datasets",
+  "The identical pipeline \u2014 design matrix, booster, calibration, TreeSHAP, fairness audit \u2014 run over real credit data with observed defaults.",
+  "This is the answer to \u201Cyou tuned the generator to a flattering level\u201D. A synthetic population easier than reality would score above both; one built to flatter would not calibrate to 0.0073 either.",
+  { maxW: 8.4 });
 
 // ================= 7. EXPERIMENT =================
 s = pres.addSlide(); s.background = { color: INK };
@@ -253,6 +399,11 @@ s.addText("Held out, approval pinned at 70%", { x: M + 0.12, y: 1.5, w: 3.18, h:
 s.addImage({ path: path.join(FIG, "roc.png"), x: M + 7.95, y: 1.45, w: 4.25, h: 2.99 });
 callout(s, 5.45, "There is no accuracy-versus-fairness trade-off here — which is the point. The disparity was never a property of the algorithm, so it did not have to be bought back with accuracy.", GREEN_PALE, GREEN, INK, 0.8);
 s.addNotes("Note the bad rate falling. The inclusive model approves a fairer mix and takes on less risk doing it, because it is seeing more.");
+
+chartSlide("roc.png", 1.420,
+  "Where the extra evidence actually pays",
+  "ROC curves on held-out applicants. The gain is largest in the region where most lending decisions are actually made.",
+  null, { maxW: 7.6 });
 
 // ================= 9. PEOPLE =================
 s = pres.addSlide(); s.background = { color: GREEN };
@@ -306,6 +457,18 @@ callout(s, 5.0, "Every algorithmic remedy bought fairness with accuracy or with 
 callout(s, 6.1, "Two failures recorded rather than smoothed over: CorrelationRemover cannot accept a missing bureau score, the very signal that defines a thin-file applicant. ExponentiatedGradient collapsed to approving 99% of everyone across five constraint tightnesses and three constraint types \u2014 at a 12% base rate, approving everyone satisfies parity exactly.", AMBER_PALE, AMBER, INK, 0.95);
 s.addNotes("The 'reads gender to decide' column is the point a fair-lending reviewer will care about. A remedy that applies a different threshold by group is disparate treatment, not a cure for it.");
 
+chartSlide("mitigation.png", 1.538,
+  "Only one intervention improved both axes",
+  "Every strategy at an identical approval rate. Up is a better model; left is a fairer one. Diamonds must read the applicant\u2019s gender to decide.",
+  "The algorithmic remedies sit down and to the left: they buy fairness with accuracy. Widening the evidence is the only point that moved up and left together, and the only one that never reads a protected attribute.",
+  { maxW: 7.8 });
+
+chartSlide("reject_inference.png", 2.247,
+  "What a lender\u2019s own book hides",
+  "Repayment is observed only for applicants a previous policy approved, so the training data is censored. On a real book the damage is unmeasurable. Here it is not.",
+  "The accepted book shows a 5.77% bad rate against a true pool rate of 12.00% \u2014 a lender reading their own data sees a portfolio six points safer than the one they are underwriting. Fuzzy augmentation recovers 73% of the lost ranking quality.",
+  { maxW: 11.0, calloutH: 0.92 });
+
 // ================= 10. EXPLAIN =================
 s = pres.addSlide(); s.background = { color: WHITE };
 title(s, "Reason codes that faithfully decompose the model");
@@ -333,6 +496,12 @@ card(s, M + 6.5, 3.75, W - 6.5, 1.65, AMBER_PALE, null);
 s.addText("An earlier build let the booster split categoricals natively. TreeSHAP mis-attributed those splits by up to 0.24 log-odds — enough to reorder an applicant's reasons. One-hot encoding every split cost 0.001 AUC and made the attribution exact. Under the Fair Practices Code an unfaithful reason is a compliance failure, not a cosmetic one.",
   { x: M + 6.8, y: 3.92, w: W - 7.1, h: 1.3, isTextBox: true, margin: 0, fontFace: BODY, fontSize: 11.5, color: "3C4E58", lineSpacing: 16 });
 s.addNotes("The 0.24 story is worth telling. It shows the difference between a system that displays an explanation and one that can defend it.");
+
+chartSlide("waterfall.png", 1.576,
+  "Every factor, and exactly how much it counted",
+  "One declined applicant, decomposed. Bars to the right pushed toward decline; bars to the left pushed toward approval.",
+  "These are not importances or approximations. They are the model\u2019s output taken apart and put back together, summing to within 5\u00d710\u207b\u00b9\u2075 of the score itself.",
+  { maxW: 8.2 });
 
 // ================= 11. RECOURSE =================
 s = pres.addSlide(); s.background = { color: NEUTRAL };
@@ -443,6 +612,12 @@ lede(s, "Five scenarios run against the real service. In every blocked case the 
 callout(s, 6.62, "Writing this demonstration corrected a claim we had wrong: scenario 2 was first recorded as a guardrail failure. It is not \u2014 nothing needed blocking, because nothing got through.", AMBER_PALE, AMBER, INK, 0.66);
 s.addNotes("Scenario 2 is the interesting one. Data minimisation is the primary defence and the guardrail is the backstop. Say that we found this by testing rather than by assuming.");
 
+chartSlide("redteam.png", 1.579,
+  "We asked a model to attack the guardrails",
+  "Each round, a language model invents attacks it has never been shown, and is not told what the detectors look for. The guardrails are then hardened and tested again on fresh attacks.",
+  "Recall does not climb toward 1.0 \u2014 it plateaus near 0.6. Patching catches that round\u2019s phrasings; the next round finds new categories. Pattern matching is an arms race a regular expression does not win, and the honest score is 0.6, not the 1.000 our own test set reports.",
+  { maxW: 8.2, calloutFill: AMBER_PALE, calloutBar: AMBER, calloutH: 0.92 });
+
 // ================= 14. EVALUATION =================
 s = pres.addSlide(); s.background = { color: WHITE };
 title(s, "Measured, not asserted");
@@ -492,6 +667,64 @@ cardRow(s, 4.12, 2.5, [
   { num: "◉", h: "Embeddings run locally", b: "ONNX on CPU: no text leaves the machine, no per-query cost, and deterministic vectors so an audited retrieval can be reproduced later." },
 ], { headSize: 13.5, bodySize: 11 });
 s.addNotes("Each of these is a trade-off with a reason attached. That is what separates a considered build from a generated one.");
+
+// ================= 15b. CONSENT AND DATA FLOW =================
+s = pres.addSlide(); s.background = { color: WHITE };
+title(s, "How alternative data legally reaches a lender in India", 0.45, INK, 29);
+lede(s, "The Account Aggregator framework is the consented rail this data travels on. Modelling it properly is what separates \u201cwe use alternative data\u201d from a system a regulator would recognise.", 0.98, MUTED, 11.9, 12.5);
+
+const FY = 1.72, FH = 1.15;
+[["Applicant", "grants consent, and may revoke it at any time", GREEN_PALE, GREEN],
+ ["Account Aggregator", "moves the data and may not read, store or resell it", WHITE, BORDER],
+ ["Banks and FIPs", "release only what the consent artefact names", WHITE, BORDER],
+ ["Lender (FIU)", "may use it only for the purpose recorded", GREEN_PALE, GREEN]].forEach((b, i) => {
+  const w = (W - 3 * 0.42) / 4, x = M + i * (w + 0.42);
+  node(s, x, FY, w, FH, b[0], b[2], { fill: b[2], line: b[3], lw: b[3] === GREEN ? 1.25 : 0.75, titleColor: b[3] === GREEN ? GREEN : INK, subSize: 10 });
+  s.addText(b[1], { x: x + 0.16, y: FY + 0.44, w: w - 0.32, h: 0.62, isTextBox: true, margin: 0, fontFace: BODY, fontSize: 10.5, color: MUTED, lineSpacing: 13 });
+  if (i < 3) arrow(s, x + w + 0.04, FY + FH / 2, x + w + 0.38, FY + FH / 2, "A8B4BC", 1.5);
+});
+
+s.addText("THE CONSENT ARTEFACT RECORDS", { x: M, y: 3.18, w: W, h: 0.28, isTextBox: true, margin: 0, fontFace: BODY, fontSize: 10, bold: true, color: GREEN, charSpacing: 1.8 });
+[["Purpose", "credit assessment, and nothing else"],
+ ["Data types", "only the accounts named"],
+ ["Duration", "an expiry, not indefinite"],
+ ["Frequency", "how often it may be pulled"],
+ ["Revocation", "withdrawable at any time"]].forEach((b, i) => {
+  const w = (W - 4 * 0.14) / 5, x = M + i * (w + 0.14);
+  node(s, x, 3.52, w, 0.82, b[0], b[1], { titleSize: 11.5, subSize: 9.5 });
+});
+
+[["DL-02", "Data collection must be need-based and consented"],
+ ["AA-05", "Purpose limitation binds the recipient"],
+ ["DPDP-04", "Only the personal data necessary may be collected"],
+ ["DPDP-05", "Consent is freely revocable"]].forEach((b, i) => {
+  const y = 4.62 + i * 0.5;
+  s.addText([{ text: `[${b[0]}]  `, options: { bold: true, color: GREEN, fontFace: BODY } },
+             { text: b[1], options: { color: INK } }],
+    { x: M, y, w: W, h: 0.44, isTextBox: true, margin: 0, valign: "middle", fontFace: BODY, fontSize: 12.5 });
+  s.addShape(pres.ShapeType.line, { x: M, y: y + 0.46, w: W, h: 0, line: { color: BORDER, width: 0.75 } });
+});
+footnote(s, "The system never receives an identifier: no name, PAN, Aadhaar or phone number, and the API refuses a request that carries one");
+s.addNotes("This slide is the India domain knowledge. Most submissions will say they use alternative data; almost none will name the rail it legally travels on or model the consent artefact.");
+
+// ================= 15c. SECURITY AND PRIVACY =================
+s = pres.addSlide(); s.background = { color: INK };
+s.addText("Security and privacy, by construction", { x: M, y: 0.45, w: W, h: 0.8, isTextBox: true, margin: 0, fontFace: HEAD, fontSize: 32, color: WHITE, valign: "top" });
+s.addText("Each of these is a structural property rather than a policy someone has to remember.", { x: M, y: 1.22, w: 11.9, h: 0.32, isTextBox: true, margin: 0, fontFace: BODY, fontSize: 13, color: INK_TEXT });
+[["No identifier can reach a third party", "The prompt is assembled only from the decision object, never the applicant record. There is no code path by which a name, PAN or Aadhaar could be sent to a provider."],
+ ["The API refuses data it does not need", "extra=\"forbid\" on the request schema, so an application carrying a PAN is rejected with a 422 rather than quietly accepted and ignored."],
+ ["No secret has a usable default", "A placeholder JWT secret fails startup. Demo passwords absent from the environment are generated per run and printed once."],
+ ["Roles omit rather than blank", "An applicant response carries no trace of the probability, threshold, contributions or provenance \u2014 the fields are absent, not nulled."],
+ ["Failures do not leak internals", "Unhandled exceptions are logged in full and returned as a bare 500. Stack traces and file paths never cross the HTTP boundary."],
+ ["Embeddings never leave the host", "Applicant-facing text is embedded locally through ONNX, so retrieval involves no third-party call at all."]].forEach((b, i) => {
+  const col = i % 2, row = Math.floor(i / 2);
+  const w = (W - 0.3) / 2, x = M + col * (w + 0.3), y = 1.78 + row * 1.62;
+  s.addShape(pres.ShapeType.roundRect, { x, y, w, h: 1.42, rectRadius: 0.09, fill: { color: INK_CARD }, line: { type: "none" } });
+  badge(s, x + 0.26, y + 0.22, String(i + 1), GREEN, WHITE);
+  s.addText(b[0], { x: x + 0.86, y: y + 0.22, w: w - 1.12, h: 0.4, isTextBox: true, margin: 0, fontFace: BODY, fontSize: 13.5, bold: true, color: GREEN_TEXT, valign: "middle" });
+  s.addText(b[1], { x: x + 0.26, y: y + 0.68, w: w - 0.52, h: 0.62, isTextBox: true, margin: 0, fontFace: BODY, fontSize: 11, color: INK_TEXT, lineSpacing: 14 });
+});
+s.addNotes("The phrase that matters is by construction. Every one of these is enforced by the shape of the code, not by a rule someone has to follow.");
 
 // ================= 16. LIMITS =================
 s = pres.addSlide(); s.background = { color: WHITE };
