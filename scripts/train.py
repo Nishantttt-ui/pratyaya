@@ -30,8 +30,8 @@ import pandas as pd
 
 from ml.data.generator import (
     INCLUSIVE_FEATURES,
-    TARGET_COLUMN,
     PROTECTED_ATTRIBUTES,
+    TARGET_COLUMN,
     TRADITIONAL_FEATURES,
     GeneratorConfig,
     generate_population,
