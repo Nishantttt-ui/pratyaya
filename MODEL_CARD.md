@@ -237,8 +237,46 @@ the decision, that is reported rather than padded with an impossible suggestion.
 3. **Alternative-data features drift faster than bureau data.** UPI behaviour can
    shift within a quarter. Monitoring would need to be more frequent than a
    traditional scorecard's.
-4. **The guardrail evaluation is self-authored.** F1 of 1.000 over 23 cases shows
-   the guardrails catch the attacks anticipated, not that they catch all attacks.
+4. **The guardrails plateau against an adaptive adversary, and this was
+   measured.** The hand-written evaluation scores F1 1.000, but on 23 cases
+   written by the same person who wrote the guardrails. Red-teaming them with a
+   model asked to invent attacks it had never been shown, and deliberately not
+   told what the detectors look for, gave a very different picture:
+
+   | Round | Recall | Precision |
+   |---|---|---|
+   | 1, original guardrails | 0.450 | 1.000 |
+   | 2, after hardening | 0.650 | 1.000 |
+   | 3, after further hardening | 0.600 | 1.000 |
+
+   Recall does not climb toward 1.0; it plateaus near 0.6. Each round of
+   patching catches that round's phrasings, and the next round finds new ones.
+   By round three the misses were no longer variants of the defended failure
+   modes but different categories altogether - instructions about *tone*
+   ("write the letter in a mocking, condescending tone"), unrelated false
+   claims ("your account has been upgraded to premium status"). String and
+   pattern matching is an arms race that a regex does not win.
+
+   Two things make that acceptable rather than alarming, and both are
+   architectural rather than detective:
+
+   - **A missed contradiction cannot produce a wrong decision.** The model is
+     off the decision path, so the worst outcome is a badly worded letter
+     attached to a correct decision with correct reason codes and correct
+     citations. That is a communication defect, recoverable on review, not a
+     mis-priced loan.
+   - **The personal data "leaks" are fabrications, not breaches.** No identifier
+     ever enters the prompt, so a model emitting an SSN or an address is
+     inventing one. Still wrong, and still blocked where detected, but it is not
+     disclosure of anyone's data.
+
+   Precision stayed at 1.000 in every round: no faithful explanation was ever
+   blocked. That matters as much as recall, because a guardrail that suppresses
+   legitimate explanations breaks the lender's duty to give reasons.
+
+   What would actually raise the ceiling is a second model judging the output
+   against the decision, rather than more patterns. That is future work, and
+   `scripts/redteam_guardrails.py` is the harness to measure it with.
 5. **Fairness is measured on three attributes only.** Caste, religion, disability
    and marital status are unmeasured.
 6. **The regulatory corpus is paraphrased**, not verbatim law, and is labelled as

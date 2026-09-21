@@ -165,6 +165,35 @@ those still returned the correct decision, reasons, recourse and citations. That
 is the architecture doing exactly what it was built to do, observed rather than
 asserted. `python scripts/demo_guardrails.py`
 
+## Do the guardrails survive an adversary?
+
+Partly, and the measurement is more useful than the number. The hand-written
+evaluation scores F1 1.000 — on 23 cases written by the same person who wrote
+the guardrails. Red-teaming them with a model asked to invent attacks it was
+never shown, and not told what the detectors look for:
+
+| Round | Recall | Precision |
+|---|---|---|
+| 1, original guardrails | 0.450 | 1.000 |
+| 2, after hardening | 0.650 | 1.000 |
+| 3, after further hardening | **0.600** | 1.000 |
+
+**Recall plateaus near 0.6.** Each patch catches that round's phrasings; the next
+round finds new ones. By round three the misses were different *categories* —
+instructions about tone, unrelated false claims — not variants of what was
+defended. Pattern matching is an arms race a regex does not win.
+
+That is survivable for one reason, and it is the architecture rather than the
+detector: **a missed contradiction cannot produce a wrong decision.** The worst
+case is bad wording attached to a correct decision, correct reason codes and
+correct citations. And the apparent personal-data leaks are the model
+*fabricating* identifiers — none ever enters the prompt — so they are wrong, but
+they are not disclosure.
+
+Precision stayed 1.000 throughout: no faithful explanation was ever blocked,
+which matters as much, since suppressing legitimate explanations breaks the duty
+to give reasons. `python scripts/redteam_guardrails.py`
+
 ## What it costs to explain a decision
 
 Per applicant, on CPU, p50:
