@@ -754,13 +754,13 @@ lede(s, "Two constraints shaped this build. Both are stated here because a revie
     fontFace: BODY, fontSize: 16, bold: true, color: GREEN });
   s.addText("THE CONSTRAINT", { x: M + 0.94, y: y + 0.66, w: (W - 1.5) / 2, h: 0.24, isTextBox: true,
     margin: 0, fontFace: BODY, fontSize: 9.5, bold: true, color: MUTED, charSpacing: 1.4 });
-  s.addText(b[1], { x: M + 0.94, y: y + 0.92, w: (W - 1.5) / 2, h: 1.04, isTextBox: true, margin: 0,
-    fontFace: BODY, fontSize: 12, color: "3C4E58", lineSpacing: 15, valign: "top" });
+  s.addText(b[1], { x: M + 0.94, y: y + 0.9, w: (W - 1.5) / 2, h: 1.1, isTextBox: true, margin: 0,
+    fontFace: BODY, fontSize: 11.5, color: "3C4E58", lineSpacing: 14, valign: "top" });
   const rx = M + 0.94 + (W - 1.5) / 2 + 0.3;
   s.addText("WHAT WE DID", { x: rx, y: y + 0.66, w: (W - 1.5) / 2 - 0.3, h: 0.24, isTextBox: true,
     margin: 0, fontFace: BODY, fontSize: 9.5, bold: true, color: GREEN, charSpacing: 1.4 });
-  s.addText(b[2], { x: rx, y: y + 0.92, w: (W - 1.5) / 2 - 0.3, h: 1.04, isTextBox: true, margin: 0,
-    fontFace: BODY, fontSize: 12, color: INK, lineSpacing: 15, valign: "top" });
+  s.addText(b[2], { x: rx, y: y + 0.9, w: (W - 1.5) / 2 - 0.3, h: 1.1, isTextBox: true, margin: 0,
+    fontFace: BODY, fontSize: 11.5, color: INK, lineSpacing: 14, valign: "top" });
 });
 callout(s, 6.4, "Everything else the brief asked for is running in production: React on Vercel, FastAPI and PostgreSQL with pgvector in Singapore, and a live language model behind guardrails.", GREEN_PALE, GREEN, INK, 0.7);
 s.addNotes("Not an apology. Constraint on the left, what was done about it on the right. Saying it first means you choose the framing; being asked later means they do. If anyone raises deployment or Bedrock, both are answered elsewhere: the system is live, and the provider abstraction was proven by swapping models mid-build.");
