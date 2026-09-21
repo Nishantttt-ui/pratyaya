@@ -12,13 +12,27 @@ import { Citations } from "./Citations";
  * argument with a number they have no way to audit, while the reason codes and
  * the recourse tell them everything they can actually act on.
  */
+/**
+ * Isotonic calibration maps its lowest bin to the default rate observed in
+ * that bin, which is exactly zero when none of those applicants defaulted.
+ * Printing "0.00%" would overclaim: the rate is below what the calibration
+ * set can resolve, not known to be nil. The same holds at the top of the
+ * range. Both ends are reported as bounds instead.
+ */
+function formatPd(pd: number): string {
+  const pct = pd * 100;
+  if (pct < 0.01) return "<0.01%";
+  if (pct > 99.99) return ">99.99%";
+  return `${pct.toFixed(2)}%`;
+}
+
 function RiskGauge({ pd, threshold }: { pd: number; threshold: number }) {
   const scale = Math.max(pd, threshold) * 1.7;
   const over = pd > threshold;
   return (
     <div className="gauge">
       <div className="readout">
-        <span className={`pd ${over ? "over" : "under"}`}>{(pd * 100).toFixed(2)}%</span>
+        <span className={`pd ${over ? "over" : "under"}`}>{formatPd(pd)}</span>
         <span className="cut">probability of default</span>
       </div>
       <div className="track">
