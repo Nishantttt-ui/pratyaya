@@ -6,10 +6,15 @@ on:
   pull_request:
   workflow_dispatch:
 
+env:
+  # fastembed defaults to a temp directory, which a cache action cannot see.
+  # Pinning it inside the workspace makes the model cacheable between runs.
+  FASTEMBED_CACHE_PATH: ${{ github.workspace }}/.fastembed
+
 jobs:
   test:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 25
 
     steps:
       - uses: actions/checkout@v4
@@ -19,19 +24,23 @@ jobs:
         with:
           enable-cache: true
 
-      - name: Set up Python
-        run: uv python install 3.12
+      - name: Create the virtual environment
+        # Not `uv pip install --system`: the runner's system interpreter is
+        # externally managed (PEP 668) and refuses it. Putting the venv's bin
+        # on PATH makes python, pytest and ruff resolve to it in later steps,
+        # since each `run` gets a fresh shell and an activate would not persist.
+        run: |
+          uv venv --python 3.12
+          echo "$PWD/.venv/bin" >> "$GITHUB_PATH"
 
       - name: Install dependencies
-        run: uv pip install --system -e ".[dev]"
+        run: uv pip install -e ".[dev]"
 
-      # The embedding model is ~67MB and is fetched on first use. Caching it
-      # keeps CI off the network on repeat runs.
-      - name: Cache embedding model
+      - name: Cache the embedding model
         uses: actions/cache@v4
         with:
-          path: ~/.cache/huggingface
-          key: hf-bge-small-en-v1.5
+          path: ${{ env.FASTEMBED_CACHE_PATH }}
+          key: fastembed-bge-small-en-v1.5-v1
 
       - name: Lint
         run: ruff check backend ml eval scripts
@@ -46,6 +55,8 @@ jobs:
         run: pytest --cov=backend/app --cov=ml --cov-report=term
         env:
           JWT_SECRET: ci-only-secret-not-used-for-anything-else
+          # Deliberately unreachable: the pgvector integration tests skip
+          # cleanly rather than failing when no external database is configured.
           DATABASE_URL: postgresql+psycopg://unused:unused@localhost:5432/unused
           DEMO_UNDERWRITER_PASSWORD: ci-underwriter-pw
           DEMO_APPLICANT_PASSWORD: ci-applicant-pw
