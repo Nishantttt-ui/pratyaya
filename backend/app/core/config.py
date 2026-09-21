@@ -65,6 +65,24 @@ class Settings(BaseSettings):
     embedding_dim: int = 384
     retrieval_top_k: int = 4
 
+    @field_validator("demo_underwriter_password", "demo_applicant_password")
+    @classmethod
+    def _strip_demo_password(cls, v: SecretStr | None) -> SecretStr | None:
+        """Trim whitespace around a demo password.
+
+        These are typed or pasted into a hosting dashboard, where a trailing
+        space is easy to introduce and impossible to see. The failure it causes
+        is opaque: the account exists, the password looks right on screen, and
+        authentication refuses it. Real user credentials are never trimmed -
+        whitespace can be meaningful in a password someone chose - but these two
+        are demonstration accounts whose whole purpose is to be typed in by a
+        reviewer.
+        """
+        if v is None:
+            return None
+        trimmed = v.get_secret_value().strip()
+        return SecretStr(trimmed) if trimmed else None
+
     @field_validator("jwt_secret")
     @classmethod
     def _reject_placeholder_secret(cls, v: SecretStr) -> SecretStr:
