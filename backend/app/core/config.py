@@ -45,7 +45,7 @@ class Settings(BaseSettings):
 
     # --- AI layer ---
     llm_provider: LLMProviderName = "gemini"
-    llm_model: str = "gemini-3.8-flash"
+    llm_model: str = "gemini-3.1-flash-lite"
     llm_timeout_seconds: float = 20.0
     gemini_api_key: SecretStr | None = None
     groq_api_key: SecretStr | None = None

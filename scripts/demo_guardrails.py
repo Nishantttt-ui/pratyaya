@@ -121,7 +121,7 @@ async def main() -> None:
            "The prompt carries only the top reason codes, so most applicant text "
            "never reaches the model at all.")
     default_prompt = prompt_for(explainer, poisoned, top_n=4)
-    print(f"  injected into     : loan_purpose")
+    print("  injected into     : loan_purpose")
     print(f"  reaches the prompt: {injection in default_prompt}")
     print("  why               : loan purpose is not among this applicant's top reason")
     print("                      codes, so it is never put in front of the model.")
