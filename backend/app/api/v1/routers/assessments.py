@@ -39,47 +39,63 @@ def to_response(
     """
     is_underwriter = role is Role.UNDERWRITER
 
+    # Underwriter-only fields are left *unset* rather than set to None, and the
+    # route serialises with exclude_unset. Passing None would still emit the key
+    # as null, which is a trace of the scoring surface rather than its absence.
+    # A field that is genuinely null and meaningful - a reason code's `value`
+    # for a feature the applicant has no record of - is always passed, so it
+    # survives the exclusion.
     def reason_out(raw: dict) -> ReasonCodeOut:
-        return ReasonCodeOut(
-            rank=raw["rank"],
-            feature=raw["feature"],
-            label=raw["label"],
-            phrase=raw["phrase"],
-            value=raw["value"],
-            direction=raw["direction"],
-            actionability=raw["actionability"],
-            contribution=raw["contribution"] if is_underwriter else None,
-        )
+        fields = {
+            "rank": raw["rank"],
+            "feature": raw["feature"],
+            "label": raw["label"],
+            "phrase": raw["phrase"],
+            "value": raw["value"],
+            "direction": raw["direction"],
+            "actionability": raw["actionability"],
+        }
+        if is_underwriter:
+            fields["contribution"] = raw["contribution"]
+        return ReasonCodeOut(**fields)
 
     def recourse_out(raw: dict) -> RecourseOut:
-        return RecourseOut(
-            feature=raw["feature"],
-            label=raw["label"],
-            current_value=raw["current_value"],
-            target_value=raw["target_value"],
-            direction=raw["direction"],
-            effort=raw["effort"],
-            hint=raw["hint"],
-            projected_pd=raw["projected_pd"] if is_underwriter else None,
-        )
+        fields = {
+            "feature": raw["feature"],
+            "label": raw["label"],
+            "current_value": raw["current_value"],
+            "target_value": raw["target_value"],
+            "direction": raw["direction"],
+            "effort": raw["effort"],
+            "hint": raw["hint"],
+        }
+        if is_underwriter:
+            fields["projected_pd"] = raw["projected_pd"]
+        return RecourseOut(**fields)
 
-    return AssessmentResponse(
-        applicant_id=applicant_id,
-        decision=result.decision,
-        is_new_to_credit=result.is_new_to_credit,
-        adverse_reasons=[reason_out(r) for r in result.adverse_reasons],
-        favourable_reasons=[reason_out(r) for r in result.favourable_reasons],
-        recourse=[recourse_out(o) for o in result.recourse],
-        citations=[CitationOut(**c) for c in result.citations],
-        narrative=result.narrative,
-        probability_of_default=result.probability_of_default if is_underwriter else None,
-        threshold=result.threshold if is_underwriter else None,
-        deterministic_notice=result.deterministic_notice if is_underwriter else None,
-        provenance=ProvenanceOut(**result.provenance.__dict__) if is_underwriter else None,
-    )
+    fields = {
+        "applicant_id": applicant_id,
+        "decision": result.decision,
+        "is_new_to_credit": result.is_new_to_credit,
+        "adverse_reasons": [reason_out(r) for r in result.adverse_reasons],
+        "favourable_reasons": [reason_out(r) for r in result.favourable_reasons],
+        "recourse": [recourse_out(o) for o in result.recourse],
+        "citations": [CitationOut(**c) for c in result.citations],
+        "narrative": result.narrative,
+    }
+    if is_underwriter:
+        fields["probability_of_default"] = result.probability_of_default
+        fields["threshold"] = result.threshold
+        fields["deterministic_notice"] = result.deterministic_notice
+        fields["provenance"] = ProvenanceOut(**result.provenance.__dict__)
+    return AssessmentResponse(**fields)
 
 
-@router.post("/assessments", response_model=AssessmentResponse)
+@router.post(
+    "/assessments",
+    response_model=AssessmentResponse,
+    response_model_exclude_unset=True,
+)
 async def create_assessment(
     applicant: ApplicantInput,
     service: ServiceDep,

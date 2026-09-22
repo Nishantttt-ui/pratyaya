@@ -10,7 +10,7 @@ export interface ReasonCode {
   direction: "adverse" | "favourable";
   actionability: string;
   /** Underwriter view only; null for applicants. */
-  contribution: number | null;
+  contribution?: number | null;
 }
 
 export interface RecourseOption {
@@ -21,7 +21,7 @@ export interface RecourseOption {
   direction: string;
   effort: string;
   hint: string | null;
-  projected_pd: number | null;
+  projected_pd?: number | null;
 }
 
 export interface Citation {
@@ -52,10 +52,10 @@ export interface Assessment {
   recourse: RecourseOption[];
   citations: Citation[];
   narrative: string;
-  probability_of_default: number | null;
-  threshold: number | null;
+  probability_of_default?: number | null;
+  threshold?: number | null;
   deterministic_notice: string | null;
-  provenance: Provenance | null;
+  provenance?: Provenance | null;
 }
 
 /** A row from the sample endpoint: raw applicant features. */

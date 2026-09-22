@@ -21,7 +21,7 @@ export function RecourseList({ options }: { options: RecourseOption[] }) {
           {option.hint && <div className="hint">{option.hint}</div>}
           <div className="row">
             <span className="chip">{EFFORT_LABEL[option.effort] ?? option.effort}</span>
-            {option.projected_pd !== null && (
+            {typeof option.projected_pd === "number" && (
               <span className="chip mono">projected PD {(option.projected_pd * 100).toFixed(1)}%</span>
             )}
           </div>

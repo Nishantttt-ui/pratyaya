@@ -28,7 +28,7 @@ export function ReasonBars({ reasons, title }: { reasons: ReasonCode[]; title: s
               <span className="rank">{reason.rank}</span>
               <span className="name">{reason.label}</span>
               <span className="val">{formatValue(reason.feature, reason.value)}</span>
-              {reason.contribution !== null && (
+              {typeof reason.contribution === "number" && (
                 <span className="contrib">
                   {reason.contribution > 0 ? "+" : ""}{reason.contribution.toFixed(3)}
                 </span>

@@ -116,12 +116,31 @@ def test_underwriter_sees_the_full_decision(client, underwriter_headers):
 
 
 def test_applicant_view_omits_the_scoring_surface(client, applicant_headers):
+    """Omitted, not nulled.
+
+    A key present with a null value still discloses that the field exists and
+    that this role is not allowed it. The earlier version of this test asserted
+    ``is None``, which the nulled implementation satisfied while the docstring,
+    the model card and the deck all claimed the fields were absent.
+    """
     body = client.post("/api/v1/assessments", json=APPLICATION, headers=applicant_headers).json()
-    assert body["probability_of_default"] is None
-    assert body["threshold"] is None
-    assert body["provenance"] is None
-    assert body["deterministic_notice"] is None
-    assert body["adverse_reasons"][0]["contribution"] is None
+    for field in ("probability_of_default", "threshold", "provenance", "deterministic_notice"):
+        assert field not in body, f"{field} leaked into the applicant view"
+    assert "contribution" not in body["adverse_reasons"][0]
+    if body["recourse"]:
+        assert "projected_pd" not in body["recourse"][0]
+
+
+def test_applicant_view_keeps_meaningful_nulls(client, applicant_headers):
+    """Excluding unset fields must not strip a null that carries information.
+
+    A reason code's ``value`` is null when the applicant has no record of that
+    feature - which for a thin-file borrower is the substance of the decision,
+    not an omission.
+    """
+    body = client.post("/api/v1/assessments", json=APPLICATION, headers=applicant_headers).json()
+    for reason in body["adverse_reasons"] + body["favourable_reasons"]:
+        assert "value" in reason
 
 
 def test_applicant_still_receives_reasons_and_rights(client, applicant_headers):

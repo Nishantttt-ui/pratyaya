@@ -55,7 +55,9 @@ function RiskGauge({ pd, threshold }: { pd: number; threshold: number }) {
 
 export function DecisionPanel({ result }: { result: Assessment }) {
   const approved = result.decision === "APPROVE";
-  const underwriter = result.probability_of_default !== null;
+  // Absent, not null, for an applicant - so test the type rather than
+  // comparing to null, which `undefined` passes.
+  const underwriter = typeof result.probability_of_default === "number";
 
   return (
     <div className="fade-in">
