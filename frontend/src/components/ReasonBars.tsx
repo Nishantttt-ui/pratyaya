@@ -13,7 +13,10 @@ import { formatValue } from "../format";
 export function ReasonBars({ reasons, title }: { reasons: ReasonCode[]; title: string }) {
   if (reasons.length === 0) return null;
   const scale = Math.max(...reasons.map((r) => Math.abs(r.contribution ?? 0)), 1e-9);
-  const hasContributions = reasons.some((r) => r.contribution !== null);
+  // Absent for an applicant, so test the type: `undefined !== null` is true,
+  // which would scale every bar off a missing contribution and collapse
+  // them all to the 3% floor instead of using the rank ladder below.
+  const hasContributions = reasons.some((r) => typeof r.contribution === "number");
 
   return (
     <div className="card">
