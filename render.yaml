@@ -10,7 +10,19 @@ services:
     runtime: python
     plan: free
     region: singapore          # same region as the Neon database
-    healthCheckPath: /health
+
+    # No healthCheckPath, deliberately.
+    #
+    # Render's probe times out after 5 seconds. Startup takes ~5.4s on a warm
+    # laptop - it loads the model, connects to Neon, initialises the ONNX
+    # embedder, builds the reference population and bcrypt-hashes the demo
+    # users before the port answers anything - and longer on a free shared
+    # CPU. So the probe fired mid-startup, timed out, and Render killed the
+    # instance, which then cold-started and failed the same way: the health
+    # check was causing the outage it existed to detect.
+    #
+    # Without it a cold start is a slow first request rather than a dead
+    # service. Build failures still surface as a failed deploy.
 
     buildCommand: |
       pip install --upgrade pip
