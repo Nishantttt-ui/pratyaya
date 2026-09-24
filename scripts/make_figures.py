@@ -366,7 +366,7 @@ def mitigation_chart(path):
     needs = [r["needs_attribute_at_decision"] for r in runs]
 
     fig, ax = plt.subplots(figsize=(7.0, 4.6), dpi=200)
-    for i, (a, g, n, lab) in enumerate(zip(auc, gap, needs, labels, strict=True)):
+    for a, g, n, lab in zip(auc, gap, needs, labels, strict=True):
         ours = "Alternative data" in lab
         colour = INCL if ours else (TRAD if n else REF)
         ax.scatter(g, a, s=230 if ours else 150, color=colour, zorder=4,

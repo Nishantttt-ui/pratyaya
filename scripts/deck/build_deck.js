@@ -17,7 +17,7 @@ const shadow = () => ({ type: "outer", color: "9AA5AE", blur: 8, offset: 2, angl
 
 const pres = new pptxgen();
 pres.layout = "LAYOUT_WIDE";          // 13.3 x 7.5
-pres.author = "Swaraj";
+pres.author = "Nishant Wadhwani";
 pres.title = "Pratyaya - Explainable Credit Risk";
 
 // ---------- helpers ----------
